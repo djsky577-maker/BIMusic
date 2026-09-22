@@ -1,0 +1,332 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>B.I 🎵</title><style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,sans-serif;background:#050508;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+::-webkit-scrollbar{display:none}
+.scroll-x{display:flex;overflow-x:auto;gap:12px;padding-bottom:8px}
+.header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 8px}
+.header .logo{font-size:1.4rem;font-weight:900}.header .logo span{color:#00e0d0}
+.header svg{width:22px;height:22px;fill:#fff}
+.search-row{display:flex;gap:10px;padding:8px 18px 12px}
+.search-row input{flex:1;padding:12px 14px;border-radius:12px;border:1px solid #1e1e28;background:#0e0e14;color:#fff;font-size:.9rem}
+.search-row button{padding:0 18px;border-radius:12px;border:none;background:#00e0d0;color:#000;font-weight:700;cursor:pointer}
+.nav-tabs{display:flex;gap:8px;padding:0 18px 12px;overflow-x:auto}
+.nav-tab{padding:8px 14px;border-radius:20px;color:#7a7a8a;font-size:.82rem;font-weight:600;white-space:nowrap;cursor:pointer;border:1px solid transparent}
+.nav-tab.active{background:#0e0e14;color:#fff;border-color:#00e0d0}
+.main-content{flex:1;overflow-y:auto;padding-bottom:200px}
+.view{display:none;padding:0 18px}.view.active{display:block}
+.hero{position:relative;border-radius:16px;overflow:hidden;height:160px;margin-bottom:20px;background:linear-gradient(135deg,#1a0a2e,#0a2540);display:flex;align-items:flex-end;padding:16px}
+.hero::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=800') center/cover;opacity:.45}
+.hero-content{position:relative;z-index:2}
+.hero .tag{font-size:.6rem;letter-spacing:2px;color:#00e0d0;font-weight:700;margin-bottom:5px}
+.hero h2{font-size:1.35rem;font-weight:800;line-height:1.15;margin-bottom:5px}
+.hero p{font-size:.72rem;color:#ccc;margin-bottom:10px;max-width:75%}
+.hero button{background:#00e0d0;border:none;color:#000;padding:8px 16px;border-radius:10px;font-weight:700;font-size:.8rem;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.hero button svg{width:13px;height:13px;fill:#000}
+.section{margin-bottom:22px}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.section-header h3{font-size:1rem;font-weight:700}
+.card{width:120px;flex:0 0 auto;cursor:pointer}
+.card-img{width:120px;height:120px;border-radius:12px;background:#1a1a24;overflow:hidden;margin-bottom:6px}
+.card-img img{width:100%;height:100%;object-fit:cover}
+.card-title{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.card-sub{font-size:.65rem;color:#7a7a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.artist-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%}
+.artist-box{cursor:pointer;text-align:center;min-width:0}
+.artist-img{width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;margin:0 auto 6px;background:#1a1a24;border:2px solid #1e1e28}
+.artist-img img{width:100%;height:100%;object-fit:cover;display:block}
+.artist-name{font-size:.7rem;font-weight:600;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px;margin-bottom:4px}
+.follow-btn{padding:4px 10px;border-radius:14px;border:1px solid #00e0d0;background:transparent;color:#00e0d0;font-size:.62rem;font-weight:700;cursor:pointer}
+.follow-btn.following{background:#00e0d0;color:#000}
+.list-item{display:flex;align-items:center;gap:12px;padding:9px;border-radius:10px;background:#0e0e14;margin-bottom:8px;border:1px solid #1a1a24;cursor:pointer}
+.list-item img{width:46px;height:46px;border-radius:8px;object-fit:cover}
+.list-info{flex:1;overflow:hidden}
+.list-title{font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-sub{font-size:.7rem;color:#7a7a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mix-list-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;background:#0e0e14;margin-bottom:8px;border:1px solid #1a1a24;cursor:pointer}
+.mix-list-item img{width:62px;height:62px;border-radius:8px;object-fit:cover;background:#1a1a24;flex-shrink:0}
+.mix-info{flex:1;overflow:hidden;min-width:0}
+.mix-title{font-size:.82rem;font-weight:600;color:#fff;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:3px}
+.mix-sub{font-size:.68rem;color:#7a7a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.genre-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.genre-card{height:90px;border-radius:14px;padding:12px;display:flex;align-items:flex-end;font-weight:700;cursor:pointer}
+.auth-box{background:#0e0e14;padding:28px 22px;border-radius:20px;max-width:400px;margin:50px auto;border:1px solid #1e1e28}
+.auth-box h2{margin-bottom:6px;color:#00e0d0;font-size:1.3rem;text-align:center}
+.auth-box p.sub{color:#7a7a8a;font-size:.82rem;margin-bottom:20px;text-align:center}
+.auth-box input{width:100%;padding:13px;margin-bottom:10px;border-radius:12px;border:1px solid #1e1e28;background:#050508;color:#fff;font-size:.9rem}
+.auth-box button{width:100%;padding:13px;border-radius:12px;border:none;background:#00e0d0;color:#000;font-weight:700;cursor:pointer;margin-bottom:8px;font-size:.9rem}
+.auth-box button.secondary{background:#1a1a24;color:#fff}
+.auth-error{color:#ff5555;font-size:.82rem;margin-bottom:10px;min-height:18px;text-align:center}
+.upload-box{background:#0e0e14;padding:20px;border-radius:16px;border:1px solid #1e1e28}
+.upload-box label{display:block;font-size:.75rem;color:#7a7a8a;margin-bottom:5px;margin-top:10px}
+.upload-box input[type=text]{width:100%;padding:12px;border-radius:10px;border:1px solid #1e1e28;background:#050508;color:#fff}
+.upload-box input[type=file]{width:100%;padding:10px;border-radius:10px;border:1px dashed #2a2a35;background:#050508;color:#7a7a8a;font-size:.82rem}
+.upload-box button{width:100%;padding:13px;border-radius:12px;border:none;background:#00e0d0;color:#000;font-weight:700;cursor:pointer;margin-top:16px}
+.profile-box{background:#0e0e14;padding:20px;border-radius:16px;border:1px solid #1e1e28;text-align:center;margin-bottom:14px}
+.profile-box .avatar{width:64px;height:64px;background:linear-gradient(135deg,#00e0d0,#7c3aed);border-radius:50%;display:flex;justify-content:center;align-items:center;margin:0 auto 12px;font-size:1.6rem;font-weight:900}
+.profile-box .email{color:#7a7a8a;font-size:.82rem}
+.desc-box{background:#0e0e14;padding:16px;border-radius:14px;border:1px solid #1e1e28;margin-bottom:12px}
+.desc-box p{font-size:.82rem;color:#ccc;line-height:1.6;margin-bottom:10px}
+.desc-box .author{font-size:.72rem;color:#7a7a8a}
+.profile-btn{width:100%;padding:13px;border-radius:12px;border:1px solid #1e1e28;background:#0e0e14;color:#fff;font-weight:600;cursor:pointer;margin-bottom:8px}
+.profile-btn.share{background:#00e0d0;color:#000;border-color:#00e0d0}
+.profile-btn.danger{color:#ff4d4d;border-color:#3a1a1a}
+.mini-player{position:fixed;left:8px;right:8px;bottom:76px;background:#0e0e14;border-radius:12px;padding:7px 10px;display:none;align-items:center;gap:10px;z-index:100;border:1px solid #2a2a35;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.7)}
+.mini-player.active{display:flex}
+.mini-player img{width:40px;height:40px;border-radius:8px;object-fit:cover;background:#1a1a24}
+.mini-info{flex:1;overflow:hidden}
+.mini-title{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-artist{font-size:.65rem;color:#7a7a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-btn{background:none;border:none;padding:5px;cursor:pointer}
+.mini-btn svg{width:20px;height:20px;fill:#fff}
+.mini-progress{position:absolute;bottom:0;left:10px;right:10px;height:2px;background:#2a2a35;border-radius:1px;overflow:hidden}
+.mini-progress-fill{height:100%;background:#00e0d0;width:0%;transition:width .3s}
+.full-player{position:fixed;inset:0;background:#050508;z-index:200;display:flex;flex-direction:column;padding:16px 18px;transform:translateY(100%);transition:transform .35s;overflow:hidden}
+.full-player.active{transform:translateY(0)}
+.full-content{position:relative;z-index:2;display:flex;flex-direction:column;flex:1;overflow-y:auto}
+.full-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-shrink:0}
+.full-header svg{width:22px;height:22px;fill:#fff;cursor:pointer}
+.full-art{width:100%;aspect-ratio:1;max-width:220px;margin:0 auto 10px;border-radius:16px;overflow:hidden;box-shadow:0 16px 44px rgba(0,0,0,.6);transition:transform .25s,opacity .25s;flex-shrink:0}
+.full-art img{width:100%;height:100%;object-fit:cover}
+.full-art.slide-l{transform:translateX(-100%);opacity:0}
+.full-art.slide-r{transform:translateX(100%);opacity:0}
+.full-info{text-align:center;margin-bottom:10px}
+.full-title{font-size:.95rem;font-weight:800;margin-bottom:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.full-artist{font-size:.75rem;color:#a0a0b0}
+.full-progress{margin-bottom:10px}
+.full-progress input{width:100%;-webkit-appearance:none;background:transparent}
+.full-progress input::-webkit-slider-runnable-track{height:3px;background:#2a2a35;border-radius:2px}
+.full-progress input::-webkit-slider-thumb{-webkit-appearance:none;height:12px;width:12px;border-radius:50%;background:#00e0d0;margin-top:-5px}
+.full-times{display:flex;justify-content:space-between;font-size:.65rem;color:#7a7a8a;margin-top:3px}
+.full-controls{display:flex;justify-content:space-between;align-items:center;padding:0 6px;padding-bottom:8px}
+.full-controls .ctrl-btn{background:none;border:none;padding:6px;cursor:pointer}
+.full-controls .ctrl-btn svg{width:26px;height:26px;fill:#fff}
+.full-controls .main-play{width:56px;height:56px;background:#00e0d0;border-radius:50%;display:flex;justify-content:center;align-items:center;border:none;cursor:pointer}
+.full-controls .main-play svg{fill:#000;width:24px;height:24px}
+.full-extra{display:flex;justify-content:space-around;padding:0 6px;padding-bottom:10px;flex-shrink:0}
+.full-extra button{background:none;border:none;cursor:pointer;padding:6px;display:flex;flex-direction:column;align-items:center;position:relative}
+.full-extra svg{width:18px;height:18px;fill:#7a7a8a}
+.full-extra button.active svg{fill:#00e0d0}
+.full-extra button.repeat-one::after{content:'1';position:absolute;font-size:.55rem;font-weight:900;color:#00e0d0;top:2px;right:6px}
+.full-extra .speed-label{font-size:.7rem;font-weight:700;color:#7a7a8a}
+.similar-section{margin-top:4px}
+.similar-title{font-size:.85rem;font-weight:700;margin-bottom:10px;color:#fff}
+.similar-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.similar-card{cursor:pointer;min-width:0}
+.similar-card-img{width:100%;aspect-ratio:1;border-radius:10px;background:#1a1a24;overflow:hidden;margin-bottom:5px}
+.similar-card-img img{width:100%;height:100%;object-fit:cover}
+.similar-card-title{font-size:.65rem;font-weight:600;color:#fff;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px}
+.similar-card-artist{font-size:.58rem;color:#7a7a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.similar-loader{grid-column:1/-1;text-align:center;padding:12px;color:#666;font-size:.7rem;display:none}
+.artist-modal{position:fixed;inset:0;background:#050508;z-index:210;transform:translateY(100%);transition:transform .35s;overflow-y:auto;padding:18px}
+.artist-modal.active{transform:translateY(0)}
+.artist-modal .back-btn{background:none;border:none;padding:6px 0;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:8px;color:#fff;font-size:.88rem}
+.artist-modal .back-btn svg{width:20px;height:20px;fill:#fff}
+.artist-hero{text-align:center;margin-bottom:22px}
+.artist-hero-img{width:130px;height:130px;border-radius:50%;overflow:hidden;margin:0 auto 14px;border:3px solid #00e0d0}
+.artist-hero-img img{width:100%;height:100%;object-fit:cover}
+.artist-hero-name{font-size:1.4rem;font-weight:900;margin-bottom:5px}
+.artist-hero-stats{font-size:.78rem;color:#7a7a8a;margin-bottom:14px}
+.artist-follow-btn{padding:9px 36px;border-radius:22px;border:1px solid #00e0d0;background:transparent;color:#00e0d0;font-weight:700;font-size:.85rem;cursor:pointer}
+.artist-follow-btn.following{background:#00e0d0;color:#000}
+.artist-section-title{font-size:.95rem;font-weight:700;margin:18px 0 10px}
+.bottom-nav{position:fixed;bottom:0;left:0;width:100%;height:66px;background:#0a0a0f;border-top:1px solid #1a1a24;display:none;justify-content:space-around;align-items:center;z-index:101}
+.bottom-nav.active{display:flex}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;color:#555;cursor:pointer;font-size:.6rem;font-weight:600;padding:6px 12px}
+.nav-item.active{color:#00e0d0}
+.nav-item svg{width:20px;height:20px;fill:currentColor}
+audio{display:none}
+#youtube-player{position:absolute;top:-9999px;left:-9999px;width:1px;height:1px}
+</style></head><body>
+<div class="header" id="mainHeader" style="display:none"><div class="logo">B<span>.</span>I</div><svg viewBox="0 0 24 24" onclick="logout()"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg></div>
+<div class="search-row" id="mainSearchRow" style="display:none"><input id="mainSearchInput" placeholder="Search songs, artists..."><button onclick="mainSearchGo()">Search</button></div>
+<div class="nav-tabs" id="mainNavTabs" style="display:none"><div class="nav-tab active" onclick="switchHomeTab('home',this)">Home</div><div class="nav-tab" onclick="switchHomeTab('trending',this)">Trending</div><div class="nav-tab" onclick="switchHomeTab('mixtape',this)">Mixtapes</div><div class="nav-tab" onclick="switchHomeTab('artists',this)">Artists</div><div class="nav-tab" onclick="switchHomeTab('genres',this)">Genres</div></div>
+<div class="main-content" id="mainContent">
+<div class="view active" id="view-auth"><div class="auth-box"><h2 id="authTitle">Log In</h2><p class="sub" id="authSubtitle">Welcome back to B.I Music</p><div class="auth-error" id="authError"></div><input type="email" id="authEmail" placeholder="Email address"><input type="password" id="authPassword" placeholder="Password"><button id="authBtn" onclick="handleAuth()">Log In</button><button class="secondary" onclick="toggleAuthMode()" id="authSwitchBtn">Need an account? Register</button></div></div>
+<div class="view" id="view-home">
+<div class="home-tab" id="tab-home" style="display:block">
+<div class="hero"><div class="hero-content"><div class="tag">GOOD VIBES ONLY</div><h2>Music for<br>every mood</h2><p>Discover new songs, artists and playlists.</p><button onclick="playHeroSong()"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Play Now</button></div></div>
+<div class="section" id="forYouSection" style="display:none"><div class="section-header"><h3>💚 For You</h3></div><div class="scroll-x" id="forYou"></div></div>
+<div class="section"><div class="section-header"><h3>Recently Played</h3></div><div class="scroll-x" id="recentlyPlayed"></div></div>
+<div class="section"><div class="section-header"><h3>Popular Artists</h3></div><div class="artist-grid" id="popularArtists"></div></div>
+<div class="section"><div class="section-header"><h3>Your Artists</h3></div><div class="artist-grid" id="followedArtists"></div></div>
+<div class="section"><div class="section-header"><h3>You Might Like</h3></div><div class="scroll-x" id="youMightLike"></div></div>
+
+</div>
+<div class="home-tab" id="tab-trending" style="display:none"><div class="section-header"><h3>🔥 Trending Songs</h3></div><div id="trendingList"></div><div class="section-header" style="margin-top:22px"><h3>✨ New Releases</h3></div><div id="hotList"></div></div>
+<div class="home-tab" id="tab-mixtape" style="display:none"><div class="section-header"><h3>🎧 Mixtapes & Nonstop</h3></div><div id="mixtapeList"></div><div id="mixtapeLoader" class="similar-loader" style="display:none">Loading more...</div></div>
+<div class="home-tab" id="tab-artists" style="display:none"><div class="search-row" style="padding:0 0 14px 0"><input id="artistSearchInput" placeholder="Search artist..."><button onclick="searchArtist()">Go</button></div><div class="artist-grid" id="artistsList"></div><div id="artistsLoader" class="similar-loader" style="display:none">Loading more...</div></div>
+<div class="home-tab" id="tab-genres" style="display:none"><div class="genre-grid"><div class="genre-card" style="background:linear-gradient(135deg,#ff416c,#ff4b2b)" onclick="searchGenre('Afrobeat')"><span>Afrobeat</span></div><div class="genre-card" style="background:linear-gradient(135deg,#1e9600,#fff200)" onclick="searchGenre('Hip Hop')"><span>Hip Hop</span></div><div class="genre-card" style="background:linear-gradient(135deg,#00b4db,#0083b0)" onclick="searchGenre('Chill')"><span>Chill</span></div><div class="genre-card" style="background:linear-gradient(135deg,#7b4397,#dc2430)" onclick="searchGenre('Dancehall')"><span>Dancehall</span></div><div class="genre-card" style="background:linear-gradient(135deg,#f12711,#f5af19)" onclick="searchGenre('Gospel')"><span>Gospel</span></div><div class="genre-card" style="background:linear-gradient(135deg,#11998e,#38ef7d)" onclick="searchGenre('Amapiano')"><span>Amapiano</span></div></div><div id="genreResults" style="margin-top:16px"></div></div>
+</div>
+<div class="view" id="view-search"><div class="search-row" style="padding:0 0 14px 0"><input id="ytSearchInput" placeholder="Search YouTube..."><button onclick="searchYouTube()">Search</button></div><div id="ytResults"></div></div>
+<div class="view" id="view-library"><div class="section-header"><h3>My Uploads</h3></div><div id="myUploadsList"></div></div>
+<div class="view" id="view-profile"><div class="profile-box"><div class="avatar">B</div><div style="font-weight:700;margin-bottom:4px">B.I Music</div><div class="email" id="profileEmail">-</div></div><div class="desc-box"><p>🎵 Welcome to B.I Music — your ultimate destination for streaming and downloading your favorite tunes. Share this app with friends and family to show some love! ❤️ Let's make the world dance to our beat.</p><div class="author">Created by Erisa Mugabi 🇺🇬</div></div><button class="profile-btn share" onclick="shareApp()">🔗 Share B.I Music</button><button class="profile-btn" onclick="showView('upload')">➕ Upload New Song</button><button class="profile-btn danger" onclick="logout()">Log Out</button></div>
+<div class="view" id="view-upload"><div class="section-header"><h3 style="color:#00e0d0">Upload Music</h3><a style="color:#00e0d0;cursor:pointer" onclick="switchTab('profile',document.querySelectorAll('.nav-item')[3])">← Back</a></div><div class="upload-box"><label>Song Title</label><input type="text" id="uploadTitle"><label>Artist Name</label><input type="text" id="uploadArtist"><label>Audio File</label><input type="file" id="uploadAudio" accept="audio/*"><label>Cover Art</label><input type="file" id="uploadCover" accept="image/*"><button onclick="uploadSong()">🚀 Upload Song</button></div></div>
+</div>
+<div class="artist-modal" id="artistModal"><button class="back-btn" onclick="closeArtistModal()"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>Back</button><div class="artist-hero"><div class="artist-hero-img"><img id="modalArtistImg" src=""></div><div class="artist-hero-name" id="modalArtistName">Artist</div><div class="artist-hero-stats" id="modalArtistStats">Loading...</div><button class="artist-follow-btn" id="modalFollowBtn" onclick="toggleFollowCurrentArtist()">Follow</button></div><div class="artist-section-title">Popular Songs</div><div id="modalArtistSongs"></div><div class="artist-section-title">Fans Also Like</div><div class="artist-grid" id="modalSimilarArtists"></div></div>
+<div class="mini-player" id="miniPlayer" onclick="openFullPlayer()"><img id="miniArt" src=""><div class="mini-info"><div class="mini-title" id="miniTitle">No song</div><div class="mini-artist" id="miniArtist">—</div></div><button class="mini-btn" onclick="event.stopPropagation();togglePlay()"><svg id="miniPlayIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="miniPauseIcon" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button><button class="mini-btn" onclick="event.stopPropagation();nextTrack()"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button><div class="mini-progress"><div class="mini-progress-fill" id="miniProgressFill"></div></div></div>
+<div class="full-player" id="fullPlayer"><div class="full-content" id="fullContent"><div class="full-header"><svg viewBox="0 0 24 24" onclick="closeFullPlayer()"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg><span style="font-size:.7rem;color:#7a7a8a;letter-spacing:2px">NOW PLAYING</span><svg viewBox="0 0 24 24" id="fullHeart" onclick="toggleLikeCurrent()"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div><div class="full-art" id="fullArtBox"><img id="fullArt" src=""></div><div class="full-info"><div class="full-title" id="fullTitle">No song</div><div class="full-artist" id="fullArtist">—</div></div><div class="full-progress"><input type="range" id="fullProgress" value="0" min="0" max="100"><div class="full-times"><span id="fullCurrent">0:00</span><span id="fullDuration">0:00</span></div></div><div class="full-controls"><button class="ctrl-btn" onclick="prevTrack()"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button><button class="main-play" onclick="togglePlay()"><svg id="fullPlayIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="fullPauseIcon" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button><button class="ctrl-btn" onclick="nextTrack()"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button></div><div class="full-extra"><button id="shuffleBtn" onclick="toggleShuffle()"><svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5z"/></svg></button><button id="repeatBtn" onclick="toggleRepeat()"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button><button id="speedBtn" onclick="toggleSpeed()"><span class="speed-label" id="speedLabel">1x</span></button></div><div class="similar-section"><div class="similar-title">Similar Songs</div><div class="similar-grid" id="similarGrid"></div><div class="similar-loader" id="similarLoader">Loading more...</div></div></div></div>
+<div class="bottom-nav" id="bottomNav"><div class="nav-item active" onclick="switchTab('home',this)"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home</div><div class="nav-item" onclick="switchTab('search',this)"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z"/></svg>Search</div><div class="nav-item" onclick="switchTab('library',this)"><svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/></svg>Library</div><div class="nav-item" onclick="switchTab('profile',this)"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Profile</div></div>
+<audio id="audioPlayer"></audio><div id="youtube-player"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://www.youtube.com/iframe_api"></script><script>
+var PIPES=['https://pipedapi.kavin.rocks','https://pipedapi.adminforge.de','https://api.piped.private.coffee','https://pipedapi.reallyaweso.me'];
+var pipeIdx=0;
+async function pget(path){for(var i=0;i<PIPES.length;i++){var idx=(pipeIdx+i)%PIPES.length;try{var r=await fetch(PIPES[idx]+path);if(!r.ok)throw 0;var d=await r.json();pipeIdx=idx;return d;}catch(e){}}throw new Error('busy');}
+var SUPABASE_URL='https://fugfrgyosrugsrardytk.supabase.co';
+var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1Z2ZyZ3lvc3J1Z3NyYXJkeXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4MDI2NzMsImV4cCI6MjEwNTM3ODY3M30.tNzCEJwV23z9dT75CUytYhirOuxF25GS1CffzpeghPY';
+var db=null,isLoginMode=true,currentUser=null,ytPlayer=null,currentSource='db',songs=[],ytResults=[],playQueue=[],currentIndex=-1,isPlaying=false,isShuffle=false,repeatMode=0,playbackSpeed=1,ytReady=false;
+var followedArtists=JSON.parse(localStorage.getItem('bi_followed')||'[]'),currentArtist={name:'',img:''};
+var mixPool=[],mixIdx=0,mixLoading=false;
+var artistPool=[],artistIdx=0,artistLoading=false;
+var simPool=[],simTitle='',simLoading=false;
+var MIX_QUERIES=['DJ nonstop mix 2025','mixtape 2025 hip hop','afrobeats nonstop mix 2025','amapiano mix 2025','dancehall mix 2025','afrobeat dj mix 2025','gospel mix 2025','rnb mixtape 2025','hip hop dj mix 2025','reggae mix 2025','soul mix 2025','party mix 2025','dj mix 2024','nonstop gospel 2024','afrobeats dj 2024','rnb nonstop 2024','amapiano 2024 mix','dancehall nonstop 2024','hip hop 2024 mix','soul mix 2024','reggae nonstop 2024','gospel mix 2024'];
+var BAD_TITLE=/\b(mix|nonstop|non-stop|mixtape|compilation|best of|megamix|dj\s|full album|playlist)\b/i;
+var SIMILAR={'drake':['Kendrick Lamar','J. Cole','Future','21 Savage'],'burna boy':['Wizkid','Davido','Asake','Rema'],'wizkid':['Burna Boy','Davido','Rema','Tems'],'rihanna':['Beyoncé','Nicki Minaj','Ariana Grande','Doja Cat'],'the weeknd':['Post Malone','Bruno Mars','Doja Cat','SZA'],'taylor swift':['Ariana Grande','Selena Gomez','Ed Sheeran','Olivia Rodrigo'],'ariana grande':['Taylor Swift','Doja Cat','Dua Lipa','Selena Gomez'],'ed sheeran':['Shawn Mendes','Lewis Capaldi','Sam Smith','James Arthur'],'sza':['Doja Cat','Summer Walker','Frank Ocean','Jhené Aiko'],'chris brown':['Usher','Trey Songz','Bryson Tiller','Miguel'],'kendrick lamar':['J. Cole','Drake','Travis Scott','Future'],'juice wrld':['XXXTentacion','Lil Peep','Polo G','Trippie Redd'],'davido':['Wizkid','Burna Boy','Asake','Rema'],'asake':['Burna Boy','Olamide','Davido','Rema'],'tems':['Wizkid','Burna Boy','SZA','Arya Starr'],'21 savage':['Metro Boomin','Future','Travis Scott','Offset'],'future':['Drake','21 Savage','Metro Boomin','Young Thug'],'post malone':['The Weeknd','Swae Lee','Juice WRLD','Lil Nas X'],'doja cat':['SZA','Ariana Grande','Nicki Minaj','Megan Thee Stallion'],'beyoncé':['Rihanna','Nicki Minaj','Alicia Keys','Chris Brown'],'eminem':['50 Cent','Dr. Dre','Jay-Z','Lil Wayne'],'50 cent':['Eminem','Dr. Dre','The Game','Lil Wayne'],'lil wayne':['Drake','Nicki Minaj','50 Cent','T.I.'],'travis scott':['Kendrick Lamar','Future','21 Savage','Metro Boomin'],'rema':['Burna Boy','Wizkid','Asake','Davido']};
+window.addEventListener('load',function(){if(typeof supabase==='undefined'){document.getElementById('authError').textContent='Loading failed';return;}db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);db.auth.getSession().then(function(r){if(r.data.session){currentUser=r.data.session.user;enterApp();}else showView('auth');}).catch(function(){showView('auth');});});
+function toggleAuthMode(){isLoginMode=!isLoginMode;document.getElementById('authTitle').textContent=isLoginMode?'Log In':'Create Account';document.getElementById('authSubtitle').textContent=isLoginMode?'Welcome back to B.I Music':'Join B.I Music today';document.getElementById('authBtn').textContent=isLoginMode?'Log In':'Register';document.getElementById('authSwitchBtn').textContent=isLoginMode?'Need an account? Register':'Already have an account? Log In';document.getElementById('authError').textContent='';}
+async function handleAuth(){var e=document.getElementById('authError');e.textContent='';if(!db){e.textContent='Loading';return;}var em=document.getElementById('authEmail').value.trim(),pw=document.getElementById('authPassword').value,b=document.getElementById('authBtn');if(!em||!pw){e.textContent='Fill both fields.';return;}if(pw.length<6){e.textContent='Password 6+ characters.';return;}b.disabled=true;b.textContent=isLoginMode?'Logging in...':'Creating...';try{var r=isLoginMode?await db.auth.signInWithPassword({email:em,password:pw}):await db.auth.signUp({email:em,password:pw});if(r.error){e.textContent=r.error.message;b.disabled=false;b.textContent=isLoginMode?'Log In':'Register';return;}if(!r.data.session){e.textContent='Check email to confirm.';b.disabled=false;b.textContent=isLoginMode?'Log In':'Register';return;}currentUser=r.data.user;b.disabled=false;b.textContent=isLoginMode?'Log In':'Register';enterApp();}catch(x){e.textContent='Error: '+x.message;b.disabled=false;b.textContent=isLoginMode?'Log In':'Register';}}
+async function logout(){if(db)await db.auth.signOut();currentUser=null;showView('auth');document.getElementById('authPassword').value='';}
+function enterApp(){document.getElementById('profileEmail').textContent=currentUser.email||'';switchTab('home',document.querySelectorAll('.nav-item')[0]);}
+function showView(name){document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});var t=document.getElementById('view-'+name);if(t)t.classList.add('active');var isAuth=(name==='auth');document.getElementById('mainHeader').style.display=isAuth?'none':'flex';document.getElementById('mainSearchRow').style.display=(name==='home')?'flex':'none';document.getElementById('mainNavTabs').style.display=(name==='home')?'flex':'none';document.getElementById('bottomNav').classList.toggle('active',!isAuth);}
+function switchTab(tab,el){document.querySelectorAll('.nav-item').forEach(function(t){t.classList.remove('active');});if(el)el.classList.add('active');if(tab==='home'){showView('home');loadHomeData();}else if(tab==='search')showView('search');else if(tab==='library'){showView('library');loadMyUploads();}else if(tab==='profile')showView('profile');}
+function switchHomeTab(tab,el){document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});if(el)el.classList.add('active');document.querySelectorAll('.home-tab').forEach(function(t){t.style.display='none';});var t=document.getElementById('tab-'+tab);if(t)t.style.display='block';if(tab==='trending'){loadTrending();loadHot();}if(tab==='mixtape'){if(mixPool.length===0)loadMixtapes();}if(tab==='artists'){if(artistPool.length===0)loadArtistsNext();}if(tab==='genres')document.getElementById('genreResults').innerHTML='';}
+function shareApp(){var url=window.location.href;if(navigator.share){navigator.share({title:'B.I Music 🎵',text:'Listen to music for free on B.I Music!',url:url}).catch(function(){});}else{navigator.clipboard.writeText(url).then(function(){alert('Link copied! Share it with friends 🎵');}).catch(function(){prompt('Copy this link:',url);});}}
+async function uploadSong(){var title=document.getElementById('uploadTitle').value.trim(),artist=document.getElementById('uploadArtist').value.trim(),af=document.getElementById('uploadAudio').files[0],cf=document.getElementById('uploadCover').files[0];if(!title||!artist||!af)return alert("Fill all fields");if(!currentUser)return alert("Log in first");try{var ap=currentUser.id+'/'+Date.now()+'.'+af.name.split('.').pop();var r1=await db.storage.from('Songs').upload(ap,af);if(r1.error)throw r1.error;var au=db.storage.from('Songs').getPublicUrl(ap).data.publicUrl,cu=null;if(cf){var cp=currentUser.id+'/'+Date.now()+'.'+cf.name.split('.').pop();var r2=await db.storage.from('Cover').upload(cp,cf);if(r2.error)throw r2.error;cu=db.storage.from('Cover').getPublicUrl(cp).data.publicUrl;}var r3=await db.from('songs').insert({title:title,artist_name:artist,audio_url:au,cover_art_url:cu,user_id:currentUser.id});if(r3.error)throw r3.error;alert("Uploaded! 🎵");document.getElementById('uploadTitle').value='';document.getElementById('uploadArtist').value='';switchTab('library',document.querySelectorAll('.nav-item')[2]);}catch(x){alert("Upload failed: "+x.message);}}
+async function loadHomeData(){if(!db)return;try{var r=await db.from('songs').select('*').order('id',{ascending:false}).limit(20);songs=r.data||[];}catch(e){songs=[];}renderRecentlyPlayed();renderFollowedArtists();setTimeout(preloadHomeMore,800);loadArtistGrid('popularArtists',['Drake','Burna Boy','Wizkid','Rihanna','The Weeknd','Ariana Grande','Ed Sheeran','SZA','Chris Brown']);loadForYou();}
+async function loadMyUploads(){if(!db)return;var r=await db.from('songs').select('*').order('id',{ascending:false});var c=document.getElementById('myUploadsList');if(r.error||!r.data||r.data.length===0){c.innerHTML='<p style="color:#666;text-align:center;padding:40px">No uploads yet. Go to Profile → Upload.</p>';return;}c.innerHTML='';r.data.forEach(function(s){var el=document.createElement('div');el.className='list-item';el.onclick=function(){playDbSong(r.data.indexOf(s));};el.innerHTML='<img src="'+(s.cover_art_url||'https://via.placeholder.com/150')+'"><div class="list-info"><div class="list-title">'+s.title+'</div><div class="list-sub">'+s.artist_name+'</div></div>';c.appendChild(el);});}
+async function searchYouTube(q,targetId){var query=typeof q==='string'?q:document.getElementById('ytSearchInput').value.trim();if(!query)return;var cid=targetId||'ytResults',c=document.getElementById(cid);if(!c)return;c.innerHTML='<p style="color:#666;text-align:center;padding:20px">Searching...</p>';try{var d=await pget('/search?q='+encodeURIComponent(query)+'&filter=videos');var items=(d.items||[]).filter(function(v){return v.url;}).slice(0,15);ytResults=items.map(function(v){return{id:{videoId:(v.url||'').replace('/watch?v=','')},snippet:{title:v.title,channelTitle:v.uploaderName,thumbnails:{default:{url:v.thumbnail},high:{url:v.thumbnail}}}};});playQueue=ytResults;c.innerHTML='';ytResults.forEach(function(t){var el=document.createElement('div');el.className='list-item';el.onclick=function(){playFromQueue(t.id.videoId);};el.innerHTML='<img src="'+t.snippet.thumbnails.default.url+'"><div class="list-info"><div class="list-title">'+t.snippet.title+'</div><div class="list-sub">'+t.snippet.channelTitle+'</div></div>';c.appendChild(el);});}catch(x){c.innerHTML='<p style="color:#ff5555;text-align:center;padding:20px">Search failed</p>';}}
+function playFromQueue(vid){var idx=playQueue.findIndex(function(t){return t.id&&t.id.videoId===vid;});if(idx<0)return;ytResults=playQueue;playYoutube(idx);}
+function loadArtistGrid(targetId,names){var c=document.getElementById(targetId);if(!c)return;c.innerHTML='';names.forEach(function(name,i){var isF=followedArtists.some(function(a){return a.name===name;});var el=document.createElement('div');el.className='artist-box';var imgId=targetId+'-img-'+Date.now()+'-'+i;el.innerHTML='<div class="artist-img" id="'+imgId+'"><img src="https://ui-avatars.com/api/?name='+encodeURIComponent(name)+'&background=00e0d0&color=000&size=200"></div><div class="artist-name">'+name+'</div><button class="follow-btn'+(isF?' following':'')+'" onclick="event.stopPropagation();toggleFollow(\''+name.replace(/'/g,"\\'")+'\',this,\''+imgId+'\')">'+(isF?'Following':'Follow')+'</button>';el.querySelector('.artist-img').onclick=function(){openArtistProfile(name,document.querySelector('#'+imgId+' img').src);};el.querySelector('.artist-name').onclick=function(){openArtistProfile(name,document.querySelector('#'+imgId+' img').src);};c.appendChild(el);loadRealThumb(name,imgId);});}
+async function loadRealThumb(name,imgId){try{var d=await pget('/search?q='+encodeURIComponent(name)+'&filter=channels');var items=d.items||[];var img=document.querySelector('#'+imgId+' img');if(!img)return;if(items[0]&&items[0].thumbnail){img.src=items[0].thumbnail;return;}var d2=await pget('/search?q='+encodeURIComponent(name)+'&filter=videos');var v=(d2.items||[])[0];if(v&&img)img.src=v.thumbnail;}catch(e){}}
+function fetchSimilars(name){return new Promise(function(resolve){var key=name.toLowerCase().trim().replace(/[^a-z0-9 ]/g,'');var picks=SIMILAR[key];var gen=['Burna Boy','Wizkid','Drake','Rihanna'];var genOut=function(){return gen.map(function(n){return{name:n,img:'https://ui-avatars.com/api/?name='+encodeURIComponent(n)+'&background=00e0d0&color=000&size=200'};});};if(picks&&picks.length){resolve(picks.map(function(n){return{name:n,img:'https://ui-avatars.com/api/?name='+encodeURIComponent(n)+'&background=00e0d0&color=000&size=200'};}));return;}pget('/search?q='+encodeURIComponent(name+' type beat')+'&filter=videos').then(function(d){var items=d.items||[];var fn=key.split(' ')[0];var other={};items.forEach(function(v){var un=(v.uploaderName||'').trim();var ul=un.toLowerCase();if(!un)return;if(ul.indexOf(fn)>=0)return;if(ul.indexOf('vevo')>=0||ul.indexOf('topic')>=0||ul.indexOf('records')>=0||ul.indexOf('official')>=0||ul.indexOf('tv')>=0||ul.indexOf('music')>=0)return;other[un]=v.thumbnail;});var out=Object.keys(other).slice(0,4).map(function(n){return{name:n,img:other[n]};});if(out.length<3)out=genOut();resolve(out);}).catch(function(){resolve(genOut());});});}
+async function toggleFollow(name,btn,imgId){var idx=followedArtists.findIndex(function(a){return a.name===name;});var img=imgId?document.querySelector('#'+imgId+' img'):null;if(idx>=0){followedArtists.splice(idx,1);if(btn){btn.classList.remove('following');btn.textContent='Follow';}localStorage.setItem('bi_followed',JSON.stringify(followedArtists));renderFollowedArtists();loadForYou();}else{followedArtists.push({name:name,img:img?img.src:''});if(btn){btn.classList.add('following');btn.textContent='Following';}renderFollowedArtists();try{var sims=await fetchSimilars(name);var myPos=followedArtists.findIndex(function(a){return a.name===name;});if(myPos<0)myPos=followedArtists.length-1;var ins=0;for(var i=0;i<sims.length;i++){var s=sims[i];var ex=followedArtists.some(function(x){return x.name.toLowerCase()===s.name.toLowerCase();});if(!ex){followedArtists.splice(myPos+ins,0,s);ins++;}}}catch(e){console.log('sim err',e);}localStorage.setItem('bi_followed',JSON.stringify(followedArtists));renderFollowedArtists();loadForYou();}if(currentArtist.name===name)updateFollowButton();}
+function renderFollowedArtists(){var c=document.getElementById('followedArtists');if(!c)return;if(followedArtists.length===0){c.innerHTML='<p style="color:#666;font-size:.75rem;grid-column:1/-1">Follow artists to see them here.</p>';return;}c.innerHTML='';followedArtists.forEach(function(a){var el=document.createElement('div');el.className='artist-box';el.innerHTML='<div class="artist-img"><img src="'+(a.img||'https://ui-avatars.com/api/?name='+encodeURIComponent(a.name)+'&background=00e0d0&color=000&size=200')+'"></div><div class="artist-name">'+a.name+'</div><button class="follow-btn following" onclick="event.stopPropagation();toggleFollow(\''+a.name.replace(/'/g,"\\'")+'\',this,null)">Following</button>';el.querySelector('.artist-img').onclick=function(){openArtistProfile(a.name,a.img);};c.appendChild(el);});}
+async function loadForYou(){var sec=document.getElementById('forYouSection'),c=document.getElementById('forYou');if(!c)return;if(followedArtists.length===0){sec.style.display='none';return;}sec.style.display='block';c.innerHTML='<p style="color:#666;font-size:.75rem">Loading...</p>';var all=[];for(var i=0;i<Math.min(followedArtists.length,5);i++){try{var d=await pget('/search?q='+encodeURIComponent(followedArtists[i].name+' top songs')+'&filter=videos');var items=(d.items||[]).slice(0,4);items.forEach(function(v){all.push({id:(v.url||'').replace('/watch?v=',''),title:v.title,uploaderName:v.uploaderName,thumbnail:v.thumbnail});});}catch(e){}}if(all.length===0){c.innerHTML='<p style="color:#666;font-size:.75rem">No songs found.</p>';return;}c.innerHTML='';all.slice(0,12).forEach(function(t){var el=document.createElement('div');el.className='card';el.onclick=function(){playQueue=all.map(function(x){return{id:{videoId:x.id},snippet:{title:x.title,channelTitle:x.uploaderName,thumbnails:{default:{url:x.thumbnail},high:{url:x.thumbnail}}}};});ytResults=playQueue;var idx=all.indexOf(t);if(idx>=0)playYoutube(idx);};el.innerHTML='<div class="card-img"><img src="'+t.thumbnail+'"></div><div class="card-title">'+t.title+'</div><div class="card-sub">'+t.uploaderName+'</div>';c.appendChild(el);});}
+async function loadTrending(){var c=document.getElementById('trendingList');if(!c)return;c.innerHTML='<p style="color:#666;text-align:center;padding:20px">Loading...</p>';try{var d=await pget('/search?q='+encodeURIComponent('trending music 2025')+'&filter=videos');var items=(d.items||[]).slice(0,12);var res=items.map(function(v){return{id:{videoId:(v.url||'').replace('/watch?v=','')},snippet:{title:v.title,channelTitle:v.uploaderName,thumbnails:{default:{url:v.thumbnail},high:{url:v.thumbnail}}}};});c.innerHTML='';res.forEach(function(t){var el=document.createElement('div');el.className='list-item';el.onclick=function(){playQueue=res;ytResults=res;playFromQueue(t.id.videoId);};el.innerHTML='<img src="'+t.snippet.thumbnails.default.url+'"><div class="list-info"><div class="list-title">'+t.snippet.title+'</div><div class="list-sub">'+t.snippet.channelTitle+'</div></div>';c.appendChild(el);});}catch(e){c.innerHTML='<p style="color:#ff5555;text-align:center;padding:20px">Could not load.</p>';}}
+async function loadHot(){var c=document.getElementById('hotList');if(!c)return;c.innerHTML='<p style="color:#666;text-align:center;padding:20px">Loading...</p>';try{var d=await pget('/search?q='+encodeURIComponent('new songs 2025 release')+'&filter=videos');var items=(d.items||[]).slice(0,12);var res=items.map(function(v){return{id:{videoId:(v.url||'').replace('/watch?v=','')},snippet:{title:v.title,channelTitle:v.uploaderName,thumbnails:{default:{url:v.thumbnail},high:{url:v.thumbnail}}}};});c.innerHTML='';res.forEach(function(t){var el=document.createElement('div');el.className='list-item';el.onclick=function(){playQueue=res;ytResults=res;playFromQueue(t.id.videoId);};el.innerHTML='<img src="'+t.snippet.thumbnails.default.url+'"><div class="list-info"><div class="list-title">'+t.snippet.title+'</div><div class="list-sub">'+t.snippet.channelTitle+'</div></div>';c.appendChild(el);});}catch(e){c.innerHTML='<p style="color:#ff5555;text-align:center;padding:20px">Could not load.</p>';}}
+async function loadMixtapes(){if(mixLoading)return;mixLoading=true;var ld=document.getElementById('mixtapeLoader');if(ld)ld.style.display='block';for(var b=0;b<3;b++){if(mixIdx>=MIX_QUERIES.length)mixIdx=0;var q=MIX_QUERIES[mixIdx++];try{var d=await pget('/search?q='+encodeURIComponent(q)+'&filter=videos');var items=(d.items||[]).slice(0,8);var c=document.getElementById('mixtapeList');items.forEach(function(v){var obj={id:(v.url||'').replace('/watch?v=',''),title:v.title,uploaderName:v.uploaderName,thumbnail:v.thumbnail};if(mixPool.some(function(x){return x.id===obj.id;}))return;var el=document.createElement('div');el.className='mix-list-item';var idx=mixPool.length;el.onclick=function(){playQueue=mixPool.map(function(x){return{id:{videoId:x.id},snippet:{title:x.title,channelTitle:x.uploaderName,thumbnails:{default:{url:x.thumbnail},high:{url:x.thumbnail}}}};});ytResults=playQueue;playYoutube(idx);};el.innerHTML='<img src="'+v.thumbnail+'"><div class="mix-info"><div class="mix-title">'+v.title+'</div><div class="mix-sub">'+v.uploaderName+'</div></div>';c.appendChild(el);mixPool.push(obj);});}catch(e){}}if(ld)ld.style.display='none';mixLoading=false;}
+async function loadArtistsNext(){if(artistLoading)return;artistLoading=true;var ld=document.getElementById('artistsLoader');if(ld)ld.style.display='block';var genres=['Afrobeats artists','Hip Hop artists','Amapiano artists','Dancehall artists','Gospel artists','R&B artists','Reggae artists','Afro pop artists','Drill artists','Soul artists','Naija artists','Trap artists'];var q=genres[artistIdx%genres.length];artistIdx++;try{var d=await pget('/search?q='+encodeURIComponent(q)+'&filter=channels');var items=(d.items||[]).slice(0,6);var c=document.getElementById('artistsList');items.forEach(function(v){var name=v.name;if(!name)return;if(artistPool.indexOf(name)>=0)return;artistPool.push(name);var isF=followedArtists.some(function(a){return a.name===name;});var imgId='artistsList-img-'+Date.now()+'-'+artistPool.length;var el=document.createElement('div');el.className='artist-box';el.innerHTML='<div class="artist-img" id="'+imgId+'"><img src="'+(v.thumbnail||'https://ui-avatars.com/api/?name='+encodeURIComponent(name)+'&background=00e0d0&color=000&size=200')+'"></div><div class="artist-name">'+name+'</div><button class="follow-btn'+(isF?' following':'')+'" onclick="event.stopPropagation();toggleFollow(\''+name.replace(/'/g,"\\'")+'\',this,\''+imgId+'\')">'+(isF?'Following':'Follow')+'</button>';el.querySelector('.artist-img').onclick=function(){openArtistProfile(name,document.querySelector('#'+imgId+' img').src);};el.querySelector('.artist-name').onclick=function(){openArtistProfile(name,document.querySelector('#'+imgId+' img').src);};c.appendChild(el);});}catch(e){}if(ld)ld.style.display='none';artistLoading=false;}
+var _lst=0,_canMix=true,_canArt=true,_canHome=true;document.getElementById('mainContent').addEventListener('scroll',function(){var st=this.scrollTop;if(st<_lst-30){_canMix=true;_canArt=true;}_lst=st;if(st+this.clientHeight>=this.scrollHeight-300){var mt=document.getElementById('tab-mixtape');if(mt&&mt.style.display!=='none'&&!mixLoading&&_canMix){_canMix=false;loadMixtapes();}var at=document.getElementById('tab-artists');if(at&&at.style.display!=='none'&&!artistLoading&&_canArt){_canArt=false;loadArtistsNext();}}});
+async function openArtistProfile(name,img){currentArtist={name:name,img:img};document.getElementById('modalArtistImg').src=img||'https://ui-avatars.com/api/?name='+encodeURIComponent(name)+'&background=00e0d0&color=000&size=200';document.getElementById('modalArtistName').textContent=name;document.getElementById('modalArtistStats').textContent=(Math.floor(Math.random()*9000000)+1000000).toLocaleString()+' monthly listeners';document.getElementById('modalArtistSongs').innerHTML='<p style="color:#666;text-align:center;padding:20px">Loading...</p>';document.getElementById('modalSimilarArtists').innerHTML='';document.getElementById('artistModal').classList.add('active');updateFollowButton();try{var d=await pget('/search?q='+encodeURIComponent(name+' songs')+'&filter=videos');var items=(d.items||[]).slice(0,25);var nm=name.toLowerCase().trim();var own=items.filter(function(v){var ul=(v.uploaderName||'').toLowerCase().trim();return ul.indexOf(nm)>=0&&!BAD_TITLE.test(v.title||'');});var use=own.length>=3?own:items.filter(function(v){return !BAD_TITLE.test(v.title||'');});var artistSongs=use.slice(0,15).map(function(v){return{id:{videoId:(v.url||'').replace('/watch?v=','')},snippet:{title:v.title,channelTitle:v.uploaderName,thumbnails:{default:{url:v.thumbnail},high:{url:v.thumbnail}}}};});var sc=document.getElementById('modalArtistSongs');sc.innerHTML='';if(artistSongs.length===0){sc.innerHTML='<p style="color:#666;text-align:center;padding:20px">No songs found.</p>';}artistSongs.forEach(function(t){var el=document.createElement('div');el.className='list-item';el.onclick=function(){playQueue=artistSongs;ytResults=artistSongs;playFromQueue(t.id.videoId);};el.innerHTML='<img src="'+t.snippet.thumbnails.default.url+'"><div class="list-info"><div class="list-title">'+t.snippet.title+'</div><div class="list-sub">'+t.snippet.channelTitle+'</div></div>';sc.appendChild(el);});var key=nm;var picks=SIMILAR[key];if(picks){loadArtistGrid('modalSimilarArtists',picks);}else{var sim=[];items.forEach(function(v){var ul=(v.uploaderName||'').toLowerCase();if(ul&&ul!==nm&&sim.indexOf(v.uploaderName)<0&&ul.indexOf('vevo')<0&&ul.indexOf('topic')<0)sim.push(v.uploaderName);});loadArtistGrid('modalSimilarArtists',sim.slice(0,6));}}catch(x){document.getElementById('modalArtistSongs').innerHTML='<p style="color:#ff5555;text-align:center;padding:20px">Could not load.</p>';}}
+function updateFollowButton(){var b=document.getElementById('modalFollowBtn');if(!b)return;var isF=followedArtists.some(function(a){return a.name===currentArtist.name;});b.textContent=isF?'Following':'Follow';b.classList.toggle('following',isF);}
+function toggleFollowCurrentArtist(){if(!currentArtist.name)return;toggleFollow(currentArtist.name,null,null);updateFollowButton();}
+function closeArtistModal(){document.getElementById('artistModal').classList.remove('active');}
+async function searchArtist(){var q=document.getElementById('artistSearchInput').value.trim();if(!q)return;var c=document.getElementById('artistsList');c.innerHTML='<p style="color:#666;text-align:center;padding:20px">Searching...</p>';artistPool=[];artistIdx=0;try{var d=await pget('/search?q='+encodeURIComponent(q)+'&filter=channels');var items=(d.items||[]).slice(0,9);var c2=document.getElementById('artistsList');c2.innerHTML='';items.forEach(function(v){var name=v.name;if(!name)return;artistPool.push(name);var isF=followedArtists.some(function(a){return a.name===name;});var imgId='artistsList-img-'+Date.now()+'-'+Math.random();var el=document.createElement('div');el.className='artist-box';el.innerHTML='<div class="artist-img" id="'+imgId+'"><img src="'+(v.thumbnail||'https://ui-avatars.com/api/?name='+encodeURIComponent(name)+'&background=00e0d0&color=000&size=200')+'"></div><div class="artist-name">'+name+'</div><button class="follow-btn'+(isF?' following':'')+'" onclick="event.stopPropagation();toggleFollow(\''+name.replace(/'/g,"\\'")+'\',this,\''+imgId+'\')">'+(isF?'Following':'Follow')+'</button>';el.querySelector('.artist-img').onclick=function(){openArtistProfile(name,document.querySelector('#'+imgId+' img').src);};el.querySelector('.artist-name').onclick=function(){openArtistProfile(name,document.querySelector('#'+imgId+' img').src);};c2.appendChild(el);});}catch(x){c.innerHTML='<p style="color:#ff5555;text-align:center">Search failed.</p>';}}
+function searchGenre(g){document.getElementById('genreResults').innerHTML='<h3 style="margin-bottom:10px">'+g+' Hits</h3><div id="genreList"></div>';searchYouTube(g+' music','genreList');}
+function mainSearchGo(){var q=document.getElementById('mainSearchInput').value.trim();if(!q)return;switchTab('search',document.querySelectorAll('.nav-item')[1]);document.getElementById('ytSearchInput').value=q;searchYouTube();}
+function ensurePlayer(vid,tries){tries=tries||0;if(ytReady&&ytPlayer&&typeof ytPlayer.loadVideoById==='function'){try{ytPlayer.loadVideoById(vid);}catch(e){}isPlaying=true;updateAllIcons();document.body.classList.add('playing');return;}if(tries<40){setTimeout(function(){ensurePlayer(vid,tries+1);},200);}}
+function onYouTubeIframeAPIReady(){ytPlayer=new YT.Player('youtube-player',{height:'1',width:'1',playerVars:{playsinline:1,controls:0,autoplay:1},events:{onReady:function(){ytReady=true;},onStateChange:function(e){if(e.data===1){isPlaying=true;updateAllIcons();document.body.classList.add('playing');}else if(e.data===2){isPlaying=false;updateAllIcons();document.body.classList.remove('playing');}else if(e.data===0){if(repeatMode===2){ytPlayer.seekTo(0);ytPlayer.playVideo();}else{nextTrack();}}}}});}
+function setTrackInfo(art,title,artist){document.getElementById('miniArt').src=art;document.getElementById('miniTitle').textContent=title;document.getElementById('miniArtist').textContent=artist;document.getElementById('fullArt').src=art;document.getElementById('fullTitle').textContent=title;document.getElementById('fullArtist').textContent=artist;document.getElementById('miniPlayer').classList.add('active');}
+function playDbSong(i){currentSource='db';currentIndex=i;if(ytPlayer&&ytPlayer.pauseVideo)ytPlayer.pauseVideo();var s=songs[i];if(!s)return;setTrackInfo(s.cover_art_url||'https://via.placeholder.com/150',s.title,s.artist_name);var p=document.getElementById('audioPlayer');p.src=s.audio_url;p.playbackRate=playbackSpeed;p.play();isPlaying=true;updateAllIcons();document.body.classList.add('playing');}
+function playYoutube(i){currentSource='youtube';currentIndex=i;document.getElementById('audioPlayer').pause();var t=ytResults[i];if(!t)return;setTrackInfo(t.snippet.thumbnails.high.url,t.snippet.title,t.snippet.channelTitle);ensurePlayer(t.id.videoId);simPool=[];simTitle=t.snippet.title;preloadSimilar();}
+async function loadSimilarSongs(){
+if(simLoading)return;
+if(simPool.length>=100)return;
+simLoading=true;
+var c=document.getElementById('similarGrid'),ld=document.getElementById('similarLoader');
+if(ld)ld.style.display='block';
+var base=simTitle.split('-')[0].trim()||simTitle;
+var cleanBase=base.replace(/official|video|lyrics|audio|music|remix|hd|4k/gi,'').trim();
+var seeds=[
+  cleanBase+' songs',
+  cleanBase+' type beat',
+  'songs like '+cleanBase,
+  cleanBase+' music mix',
+  cleanBase+' remix',
+  'similar to '+cleanBase,
+  cleanBase+' playlist',
+  cleanBase+' vibes',
+  'afrobeats 2025 mix',
+  'hip hop 2025 hits',
+  'rnb 2025 hits',
+  'amapiano 2025 mix',
+  'dancehall 2025',
+  'afro pop 2025',
+  'trap 2025',
+  'gospel 2025'
+];
+var q=seeds[Math.floor(simPool.length/4)%seeds.length];
+try{
+  var d=await pget('/search?q='+encodeURIComponent(q)+'&filter=videos');
+  var items=(d.items||[]).filter(function(v){return v.url&&!BAD_TITLE.test(v.title||'');});
+  if(simPool.length===0){c.innerHTML='';}
+  var nm=cleanBase.toLowerCase();
+  items.forEach(function(v){
+    if(simPool.length>=100)return;
+    var vid=(v.url||'').replace('/watch?v=','');
+    if(simPool.some(function(x){return x.id===vid;}))return;
+    var uploader=(v.uploaderName||'').toLowerCase();
+    if(uploader.indexOf(nm)>=0 && simPool.length>=5){
+      var sameCount=simPool.filter(function(x){return (x.uploaderName||'').toLowerCase().indexOf(nm)>=0;}).length;
+      if(sameCount>=Math.ceil(simPool.length*0.3))return;
+    }
+    var obj={id:vid,title:v.title,uploaderName:v.uploaderName,thumbnail:v.thumbnail};
+    simPool.push(obj);
+    var idx=simPool.length-1;
+    var el=document.createElement('div');
+    el.className='similar-card';
+    el.onclick=function(){
+      playQueue=simPool.map(function(x){return{id:{videoId:x.id},snippet:{title:x.title,channelTitle:x.uploaderName,thumbnails:{default:{url:x.thumbnail},high:{url:x.thumbnail}}}};});
+      ytResults=playQueue;
+      playYoutube(idx);
+    };
+    el.innerHTML='<div class="similar-card-img"><img src="'+obj.thumbnail+'"></div><div class="similar-card-title">'+obj.title+'</div><div class="similar-card-artist">'+obj.uploaderName+'</div>';
+    c.appendChild(el);
+  });
+}catch(e){}
+if(ld)ld.style.display='none';
+simLoading=false;
+}
+function togglePlay(){if(currentSource==='youtube'){if(!ytReady||!ytPlayer)return;try{if(isPlaying){ytPlayer.pauseVideo();isPlaying=false;document.body.classList.remove('playing');}else{ytPlayer.playVideo();isPlaying=true;document.body.classList.add('playing');}updateAllIcons();}catch(e){}}else{var p=document.getElementById('audioPlayer');if(!p.src)return;if(isPlaying){p.pause();isPlaying=false;document.body.classList.remove('playing');}else{p.play();isPlaying=true;document.body.classList.add('playing');}updateAllIcons();}}
+function updateAllIcons(){var sh=isPlaying?'none':'block',hd=isPlaying?'block':'none';['miniPlayIcon','fullPlayIcon'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=sh;});['miniPauseIcon','fullPauseIcon'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=hd;});}
+function nextTrack(){if(currentSource==='db'&&songs.length>0){currentIndex=isShuffle?Math.floor(Math.random()*songs.length):(currentIndex+1)%songs.length;playDbSong(currentIndex);}else if(currentSource==='youtube'&&ytResults.length>0){currentIndex=isShuffle?Math.floor(Math.random()*ytResults.length):(currentIndex+1)%ytResults.length;playYoutube(currentIndex);}}
+function prevTrack(){if(currentSource==='db'&&songs.length>0){currentIndex=(currentIndex-1+songs.length)%songs.length;playDbSong(currentIndex);}else if(currentSource==='youtube'&&ytResults.length>0){currentIndex=(currentIndex-1+ytResults.length)%ytResults.length;playYoutube(currentIndex);}}
+function toggleShuffle(){isShuffle=!isShuffle;document.getElementById('shuffleBtn').classList.toggle('active',isShuffle);}
+function toggleRepeat(){repeatMode=(repeatMode+1)%3;var b=document.getElementById('repeatBtn');b.classList.remove('active','repeat-one');if(repeatMode===1)b.classList.add('active');if(repeatMode===2)b.classList.add('active','repeat-one');}
+function toggleSpeed(){var s=[0.5,1,1.5,2];var i=s.indexOf(playbackSpeed);playbackSpeed=s[(i+1)%s.length];document.getElementById('speedLabel').textContent=playbackSpeed+'x';if(currentSource==='db'){document.getElementById('audioPlayer').playbackRate=playbackSpeed;}else if(ytReady&&ytPlayer&&ytPlayer.setPlaybackRate)ytPlayer.setPlaybackRate(playbackSpeed);}
+function toggleLikeCurrent(){document.getElementById('fullHeart').style.fill='#ff4d4d';}
+function playHeroSong(){if(songs.length>0)playDbSong(0);else switchTab('search',document.querySelectorAll('.nav-item')[1]);}
+function openFullPlayer(){document.getElementById('fullPlayer').classList.add('active');}
+function closeFullPlayer(){document.getElementById('fullPlayer').classList.remove('active');}
+function renderRecentlyPlayed(){var c=document.getElementById('recentlyPlayed');if(!c)return;c.innerHTML='';if(songs.length===0){c.innerHTML='<p style="color:#666;font-size:.75rem">Upload songs to see them here.</p>';return;}songs.slice(0,8).forEach(function(s){var el=document.createElement('div');el.className='card';el.onclick=function(){playDbSong(songs.indexOf(s));};el.innerHTML='<div class="card-img"><img src="'+(s.cover_art_url||'https://via.placeholder.com/150')+'"></div><div class="card-title">'+s.title+'</div><div class="card-sub">'+s.artist_name+'</div>';c.appendChild(el);});}
+document.getElementById('audioPlayer').addEventListener('ended',function(){if(repeatMode===2){this.currentTime=0;this.play();}else nextTrack();});
+document.getElementById('fullProgress').addEventListener('input',function(e){if(currentSource==='db'){var p=document.getElementById('audioPlayer');if(p.duration)p.currentTime=(e.target.value/100)*p.duration;}else if(ytReady&&ytPlayer&&ytPlayer.getDuration)ytPlayer.seekTo((e.target.value/100)*ytPlayer.getDuration(),true);});
+setInterval(function(){var cur=0,dur=0;if(currentSource==='db'){var p=document.getElementById('audioPlayer');cur=p.currentTime||0;dur=p.duration||0;}else if(ytReady&&ytPlayer&&ytPlayer.getCurrentTime){cur=ytPlayer.getCurrentTime()||0;dur=ytPlayer.getDuration()||0;}if(dur>0){var pct=(cur/dur)*100;document.getElementById('fullProgress').value=pct;document.getElementById('miniProgressFill').style.width=pct+'%';document.getElementById('fullCurrent').textContent=fmt(cur);document.getElementById('fullDuration').textContent=fmt(dur);}},1000);
+function fmt(s){if(isNaN(s))return'0:00';var m=Math.floor(s/60);var sec=Math.floor(s%60);return m+':'+(sec<10?'0':'')+sec;}
+var tx=0,ab=document.getElementById('fullArtBox');
+ab.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;},{passive:true});
+ab.addEventListener('touchend',function(e){var dx=e.changedTouches[0].screenX-tx;if(dx<-50){ab.classList.add('slide-l');setTimeout(function(){nextTrack();ab.classList.remove('slide-l');},250);}if(dx>50){ab.classList.add('slide-r');setTimeout(function(){prevTrack();ab.classList.remove('slide-r');},250);}},{passive:true});
+document.getElementById('fullContent').addEventListener('scroll',function(){var mc=this;if(mc.scrollTop+mc.clientHeight>=mc.scrollHeight-250){if(currentSource==='youtube'&&!simLoading){loadSimilarSongs();}}});
+
+var homeMorePool=[],homeMoreIdx=0,homeMoreLoading=false;
+var homeQueries=["afrobeats 2025 hits","hip hop 2025 hits","rnb 2025 hits","amapiano 2025 mix","dancehall 2025 mix","afro pop 2025","trap 2025 hits","gospel 2025 mix","afro soul 2025","drill 2025","naija hits 2025","ugandan music 2025","reggae 2025 mix","soul 2025 hits","pop hits 2025","afro fusion 2025"];
+async function loadHomeMore(){
+if(homeMoreLoading)return;
+if(homeMorePool.length>=80)return;
+homeMoreLoading=true;
+var q=homeQueries[homeMoreIdx%homeQueries.length];homeMoreIdx++;
+try{
+  var d=await pget('/search?q='+encodeURIComponent(q)+'&filter=videos');
+  var items=(d.items||[]).filter(function(v){return v.url&&!BAD_TITLE.test(v.title||'');});
+  var c=document.getElementById('youMightLike');
+  if(!c)return;
+  items.forEach(function(v){
+    if(homeMorePool.length>=80)return;
+    var vid=(v.url||'').replace('/watch?v=','');
+    if(homeMorePool.some(function(x){return x.id===vid;}))return;
+    var obj={id:vid,title:v.title,uploaderName:v.uploaderName,thumbnail:v.thumbnail};
+    homeMorePool.push(obj);
+    var idx=homeMorePool.length-1;
+    var el=document.createElement('div');el.className='card';
+    el.onclick=function(){
+      playQueue=homeMorePool.map(function(x){return{id:{videoId:x.id},snippet:{title:x.title,channelTitle:x.uploaderName,thumbnails:{default:{url:x.thumbnail},high:{url:x.thumbnail}}}};});
+      ytResults=playQueue;playYoutube(idx);
+    };
+    el.innerHTML='<div class="card-img"><img src="'+obj.thumbnail+'"></div><div class="card-title">'+obj.title+'</div><div class="card-sub">'+obj.uploaderName+'</div>';
+    c.appendChild(el);
+  });
+}catch(e){}
+homeMoreLoading=false;
+}
+async function preloadHomeMore(){homeMoreIdx=0;for(var i=0;i<3;i++){await loadHomeMore();}}
+
+</script></body></html>
