@@ -345,4 +345,5 @@ window.stopHold=function(){if(_holdIv){clearInterval(_holdIv);_holdIv=null;}};
 function bindHoldBtn(){var b=document.getElementById('bttBtn');if(!b||b._bound)return;b._bound=true;b.addEventListener('touchstart',window.startHold,{passive:false});b.addEventListener('touchend',window.stopHold);b.addEventListener('touchcancel',window.stopHold);b.addEventListener('mousedown',window.startHold);b.addEventListener('mouseup',window.stopHold);b.addEventListener('mouseleave',window.stopHold);b.addEventListener('contextmenu',function(e){e.preventDefault();});}
 document.addEventListener('touchmove',window.stopHold,{passive:true});
 document.addEventListener('touchend',window.stopHold);
-</script></body></html>
+</script><script data-goatcounter="https://bimusic.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body></html>
