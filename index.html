@@ -225,8 +225,10 @@ audio{display:none}
 
 
 
-<style id="sticky-fs-style">
-/* Sticky container */
+
+
+
+<style id="ultimate-player-style">
 #fullArtBox {
     position: sticky !important;
     top: 0 !important;
@@ -239,16 +241,13 @@ audio{display:none}
     border-radius: 12px !important;
     margin: 0 auto 15px auto !important;
     background: #000 !important;
-    transition: border-radius 0.3s ease, width 0.3s ease, height 0.3s ease;
     cursor: pointer;
 }
-/* Fullscreen override */
 #fullArtBox.is-fullscreen {
     position: fixed !important;
     top: 0 !important; left: 0 !important;
     width: 100vw !important; height: 100vh !important;
     max-width: 100vw !important;
-    aspect-ratio: auto !important;
     border-radius: 0 !important;
     margin: 0 !important;
     z-index: 99999 !important;
@@ -259,6 +258,7 @@ audio{display:none}
     width: 100% !important; height: 100% !important;
     display: none;
     z-index: 10 !important;
+    pointer-events: none; /* Prevents YouTube from stealing clicks or showing its own end screen */
 }
 #youtube-player iframe {
     width: 100% !important; height: 100% !important;
@@ -269,7 +269,6 @@ audio{display:none}
     object-fit: cover !important;
     display: block !important;
 }
-/* Fullscreen icon overlay */
 #fsOverlayBtn {
     position: absolute;
     bottom: 10px; right: 10px;
@@ -630,19 +629,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+
+
+
+
+
+
+
 <button id="fsOverlayBtn" title="Toggle Fullscreen">⛶</button>
-<script id="sticky-fs-script">
+<script id="ultimate-player-script">
 document.addEventListener('DOMContentLoaded', function() {
     var fab = document.getElementById('fullArtBox');
     var fsBtn = document.getElementById('fsOverlayBtn');
     var yp = document.getElementById('youtube-player');
     var fa = document.getElementById('fullArt');
 
-    // Move elements into place
     if (yp && fab) { fab.appendChild(yp); }
     if (fsBtn && fab) { fab.appendChild(fsBtn); }
 
-    // Toggle Fullscreen Function
+    // Fullscreen Toggle
     window.toggleFS = function() {
         var isFull = fab.classList.contains('is-fullscreen');
         if (!isFull) {
@@ -654,28 +659,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Tap on the video box to go fullscreen
     if (fab) {
         fab.addEventListener('click', function(e) {
-            // If they click the YouTube iframe itself (to play/pause), don't trigger fullscreen
             if (e.target.tagName === 'IFRAME') return;
             toggleFS();
         });
     }
-
-    // Fullscreen button tap
     if (fsBtn) {
         fsBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             toggleFS();
         });
     }
-
-    // Listen for native fullscreen exit
     document.addEventListener('fullscreenchange', function() {
-        if (!document.fullscreenElement) {
-            fab.classList.remove('is-fullscreen');
-        }
+        if (!document.fullscreenElement) fab.classList.remove('is-fullscreen');
     });
 
     // Override playYoutube to show video and fullscreen button
@@ -697,42 +694,52 @@ document.addEventListener('DOMContentLoaded', function() {
         fab.classList.remove('is-fullscreen');
     };
 });
-</script>
 
-
-<script id="auto-shuffle-script">
-document.addEventListener('DOMContentLoaded', function() {
-    // Wrap the existing nextTrack function
-    var originalNextTrack = window.nextTrack;
-    window.nextTrack = function() {
-        // If playing YouTube and we have similar songs loaded, play a random one
-        if (currentSource === 'youtube' && window.simPool && window.simPool.length > 0) {
-            // Pick a random song from the similar songs list
-            var randomIndex = Math.floor(Math.random() * window.simPool.length);
-            
-            // Convert the simPool format to the ytResults format the player expects
-            window.ytResults = window.simPool.map(function(x) {
-                return {
-                    id: { videoId: x.id },
-                    snippet: {
-                        title: x.title,
-                        channelTitle: x.uploaderName,
-                        thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+// Override YouTube player initialization to intercept END state and fix errors
+window.onYouTubeIframeAPIReady = function() {
+    ytPlayer = new YT.Player('youtube-player', {
+        height: '100%',
+        width: '100%',
+        playerVars: {
+            playsinline: 1,
+            controls: 0,
+            autoplay: 1,
+            rel: 0,
+            modestbranding: 1,
+            enablejsapi: 1
+        },
+        events: {
+            'onReady': function() { ytReady = true; },
+            'onStateChange': function(e) {
+                if (e.data === 1) { // Playing
+                    isPlaying = true; updateAllIcons();
+                } else if (e.data === 2) { // Paused
+                    isPlaying = false; updateAllIcons();
+                } else if (e.data === 0) { // ENDED
+                    // Auto-shuffle from Similar Songs!
+                    if (window.simPool && window.simPool.length > 0) {
+                        var ri = Math.floor(Math.random() * window.simPool.length);
+                        window.ytResults = window.simPool.map(function(x) {
+                            return {
+                                id: { videoId: x.id },
+                                snippet: {
+                                    title: x.title,
+                                    channelTitle: x.uploaderName,
+                                    thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                                }
+                            };
+                        });
+                        window.playQueue = window.ytResults;
+                        window.playYoutube(ri);
+                    } else {
+                        // Fallback to normal nextTrack if no similar songs loaded
+                        if (typeof nextTrack === 'function') nextTrack();
                     }
-                };
-            });
-            window.playQueue = window.ytResults;
-            
-            // Play the random song
-            if (typeof window.playYoutube === 'function') {
-                window.playYoutube(randomIndex);
+                }
             }
-        } else {
-            // Fallback to normal behavior if simPool is empty
-            if (originalNextTrack) originalNextTrack();
         }
-    };
-});
+    });
+};
 </script>
 
 </body></html>
