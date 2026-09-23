@@ -228,7 +228,10 @@ audio{display:none}
 
 
 
-<style id="ultimate-player-style">
+
+
+
+<style id="clean-player-style">
 #fullArtBox {
     position: sticky !important;
     top: 0 !important;
@@ -241,7 +244,6 @@ audio{display:none}
     border-radius: 12px !important;
     margin: 0 auto 15px auto !important;
     background: #000 !important;
-    cursor: pointer;
 }
 #fullArtBox.is-fullscreen {
     position: fixed !important;
@@ -258,7 +260,6 @@ audio{display:none}
     width: 100% !important; height: 100% !important;
     display: none;
     z-index: 10 !important;
-    pointer-events: none; /* Prevents YouTube from stealing clicks or showing its own end screen */
 }
 #youtube-player iframe {
     width: 100% !important; height: 100% !important;
@@ -276,9 +277,10 @@ audio{display:none}
     background: rgba(0,0,0,0.6);
     color: white;
     border: none; border-radius: 5px;
-    padding: 5px 10px;
-    font-size: 18px;
+    padding: 8px 12px;
+    font-size: 20px;
     display: none;
+    cursor: pointer;
 }
 </style>
 
@@ -636,8 +638,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+
+
+
+
 <button id="fsOverlayBtn" title="Toggle Fullscreen">⛶</button>
-<script id="ultimate-player-script">
+<script id="clean-player-script">
 document.addEventListener('DOMContentLoaded', function() {
     var fab = document.getElementById('fullArtBox');
     var fsBtn = document.getElementById('fsOverlayBtn');
@@ -647,35 +653,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (yp && fab) { fab.appendChild(yp); }
     if (fsBtn && fab) { fab.appendChild(fsBtn); }
 
-    // Fullscreen Toggle
-    window.toggleFS = function() {
-        var isFull = fab.classList.contains('is-fullscreen');
-        if (!isFull) {
-            fab.classList.add('is-fullscreen');
-            if (fab.requestFullscreen) fab.requestFullscreen();
-        } else {
-            fab.classList.remove('is-fullscreen');
-            if (document.exitFullscreen) document.exitFullscreen();
-        }
-    };
-
-    if (fab) {
-        fab.addEventListener('click', function(e) {
-            if (e.target.tagName === 'IFRAME') return;
-            toggleFS();
-        });
-    }
+    // ONLY toggle fullscreen when the button is clicked
     if (fsBtn) {
         fsBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            toggleFS();
+            var isFull = fab.classList.contains('is-fullscreen');
+            if (!isFull) {
+                fab.classList.add('is-fullscreen');
+                if (fab.requestFullscreen) fab.requestFullscreen();
+            } else {
+                fab.classList.remove('is-fullscreen');
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
         });
     }
+
     document.addEventListener('fullscreenchange', function() {
         if (!document.fullscreenElement) fab.classList.remove('is-fullscreen');
     });
 
-    // Override playYoutube to show video and fullscreen button
+    // Show video when YouTube plays
     var originalPlayYoutube = window.playYoutube;
     window.playYoutube = function(i) {
         if (originalPlayYoutube) originalPlayYoutube(i);
@@ -684,7 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (fsBtn) fsBtn.style.display = 'block';
     };
 
-    // Override playDbSong to show album art and hide fullscreen button
+    // Show art when local song plays
     var originalPlayDbSong = window.playDbSong;
     window.playDbSong = function(i) {
         if (originalPlayDbSong) originalPlayDbSong(i);
@@ -695,14 +692,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 
-// Override YouTube player initialization to intercept END state and fix errors
+// Override YouTube initialization to auto-shuffle from Similar Songs
 window.onYouTubeIframeAPIReady = function() {
     ytPlayer = new YT.Player('youtube-player', {
         height: '100%',
         width: '100%',
         playerVars: {
             playsinline: 1,
-            controls: 0,
+            controls: 1, // Enable controls so you can pause by tapping
             autoplay: 1,
             rel: 0,
             modestbranding: 1,
@@ -732,7 +729,6 @@ window.onYouTubeIframeAPIReady = function() {
                         window.playQueue = window.ytResults;
                         window.playYoutube(ri);
                     } else {
-                        // Fallback to normal nextTrack if no similar songs loaded
                         if (typeof nextTrack === 'function') nextTrack();
                     }
                 }
