@@ -461,23 +461,36 @@ body { background: #050505 !important; }
 </style>
 
 
-<style id="ambient-glow-style">
-#ambientBackground {
-    position: fixed;
+
+
+
+<style id="full-player-ambient-style">
+/* Make the full player background transparent so the glow shows through */
+#fullPlayer {
+    background: rgba(0, 0, 0, 0.85) !important; 
+    overflow: hidden !important;
+}
+
+/* The ambient glow layer */
+#fullPlayerAmbient {
+    position: absolute;
     top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    z-index: -1; /* Behind everything */
+    width: 100%; height: 100%;
+    z-index: 0; /* Behind everything else in the player */
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
-    filter: blur(80px) saturate(200%) brightness(0.4); /* Heavy blur, vibrant, dark */
-    transform: scale(1.3); /* Scale up to hide blurred edges */
-    transition: background-image 1s ease-in-out, opacity 0.5s ease-in-out;
-    pointer-events: none; /* Prevents it from blocking any clicks */
-    opacity: 0; /* Hidden by default */
+    filter: blur(80px) saturate(180%) brightness(0.3); /* Soft, dark, colorful blur */
+    transform: scale(1.3); /* Scales up to hide blurred edges */
+    transition: background-image 1s ease-in-out;
+    pointer-events: none; /* Ensures it NEVER blocks clicks */
+    will-change: transform, background-image;
 }
-#ambientBackground.active {
-    opacity: 1; /* Fade in when a song plays */
+
+/* Ensure all content (video, buttons) sits ON TOP of the glow */
+#fullPlayer > *:not(#fullPlayerAmbient), 
+#fullContent > * {
+    position: relative;
+    z-index: 1;
 }
 </style>
 
@@ -1202,52 +1215,45 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 
-<script id="ambient-glow-script">
-document.addEventListener('DOMContentLoaded', function() {
-    // Create the background element
-    var ambientBg = document.createElement('div');
-    ambientBg.id = 'ambientBackground';
-    document.body.appendChild(ambientBg);
 
-    function updateAmbientBg(imageUrl) {
+
+
+<script id="full-player-ambient-script">
+document.addEventListener('DOMContentLoaded', function() {
+    var fullPlayer = document.getElementById('fullPlayer');
+    if (!fullPlayer) return;
+
+    // Create the ambient background div and put it inside the full player
+    var ambientBg = document.createElement('div');
+    ambientBg.id = 'fullPlayerAmbient';
+    fullPlayer.insertBefore(ambientBg, fullPlayer.firstChild);
+
+    function updateFullPlayerBg(imageUrl) {
         if (!imageUrl) return;
         ambientBg.style.backgroundImage = 'url(' + imageUrl + ')';
-        ambientBg.classList.add('active');
     }
 
-    function hideAmbientBg() {
-        ambientBg.classList.remove('active');
-    }
-
-    // Hook into playYoutube
+    // Hook into playYoutube (uses the official thumbnail as the safe source)
     var originalPlayYoutube = window.playYoutube;
     window.playYoutube = function(i) {
         if (originalPlayYoutube) originalPlayYoutube(i);
         var t = window.ytResults[i];
         if (t && t.id && t.id.videoId) {
-            // Use the high-quality thumbnail as the safe fallback
             var imgUrl = 'https://img.youtube.com/vi/' + t.id.videoId + '/hqdefault.jpg';
-            updateAmbientBg(imgUrl);
+            updateFullPlayerBg(imgUrl);
         }
     };
 
-    // Hook into playDbSong
+    // Hook into playDbSong (uses the cover art as the source)
     var originalPlayDbSong = window.playDbSong;
     window.playDbSong = function(i) {
         if (originalPlayDbSong) originalPlayDbSong(i);
         var s = window.songs[i];
         if (s && s.cover_art_url) {
-            updateAmbientBg(s.cover_art_url);
+            updateFullPlayerBg(s.cover_art_url);
         } else {
-            hideAmbientBg();
+            ambientBg.style.backgroundImage = 'none';
         }
-    };
-
-    // Hide background when closing the full player to save battery
-    var originalCloseFullPlayer = window.closeFullPlayer;
-    window.closeFullPlayer = function() {
-        if (originalCloseFullPlayer) originalCloseFullPlayer();
-        hideAmbientBg();
     };
 });
 </script>
