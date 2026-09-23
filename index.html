@@ -1306,4 +1306,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+
+<script id="hide-mini-on-full-script">
+document.addEventListener('DOMContentLoaded', function() {
+    var miniPlayer = document.getElementById('miniPlayer');
+    
+    // Hook into openFullPlayer
+    var originalOpenFullPlayer = window.openFullPlayer;
+    window.openFullPlayer = function() {
+        if (originalOpenFullPlayer) originalOpenFullPlayer();
+        if (miniPlayer) {
+            miniPlayer.style.display = 'none'; // Hide the mini player
+        }
+    };
+
+    // Hook into closeFullPlayer
+    var originalCloseFullPlayer = window.closeFullPlayer;
+    window.closeFullPlayer = function() {
+        if (originalCloseFullPlayer) originalCloseFullPlayer();
+        if (miniPlayer) {
+            // Only show the mini player if a song is actually playing/loaded
+            if (miniPlayer.classList.contains('active')) {
+                miniPlayer.style.display = 'flex'; // Bring it back
+            }
+        }
+    };
+});
+</script>
+
 </body></html>
