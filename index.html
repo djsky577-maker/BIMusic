@@ -285,14 +285,17 @@ audio{display:none}
 </style>
 
 
+
+
+
 <style id="video-blocker-style">
 #videoBlocker {
     display: none;
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    z-index: 20; /* Higher than the iframe (z-index 10), lower than the fullscreen button (z-index 50) */
-    background: rgba(0, 0, 0, 0.85);
+    z-index: 100 !important; /* Higher than everything else */
+    background: rgba(0, 0, 0, 0.95);
     color: white;
     flex-direction: column;
     align-items: center;
@@ -303,7 +306,7 @@ audio{display:none}
 #videoBlocker .blocker-text {
     font-size: 14px;
     color: #aaa;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 #videoBlocker .blocker-btn {
     background: #00e0d0;
@@ -875,56 +878,100 @@ window.onYouTubeIframeAPIReady = function() {
 </script>
 
 
+
+
+
 <script id="video-blocker-script">
 document.addEventListener('DOMContentLoaded', function() {
     var fab = document.getElementById('fullArtBox');
-    if (!fab) return;
-
-    // Create the blocker element
+    var fsBtn = document.getElementById('fsOverlayBtn');
+    var yp = document.getElementById('youtube-player');
+    var fa = document.getElementById('fullArt');
     var blocker = document.createElement('div');
+    
     blocker.id = 'videoBlocker';
     blocker.innerHTML = '<div class="blocker-text">Up Next from Similar Songs</div><button class="blocker-btn">▶ Play Next Song</button>';
-    
-    fab.appendChild(blocker);
+    if (fab) { fab.appendChild(blocker); }
 
-    // When the user clicks the blocker, play a random similar song
-    blocker.onclick = function() {
-        blocker.style.display = 'none';
-        
-        if (window.simPool && window.simPool.length > 0) {
-            var ri = Math.floor(Math.random() * window.simPool.length);
-            window.ytResults = window.simPool.map(function(x) {
-                return {
-                    id: { videoId: x.id },
-                    snippet: {
-                        title: x.title,
-                        channelTitle: x.uploaderName,
-                        thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
-                    }
-                };
-            });
-            window.playQueue = window.ytResults;
-            window.playYoutube(ri);
-        } else {
-            // Fallback if no similar songs are loaded yet
-            if (typeof nextTrack === 'function') nextTrack();
-        }
+    // 1. Fullscreen Toggle
+    if (fsBtn) {
+        fsBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var isFull = fab.classList.contains('is-fullscreen');
+            if (!isFull) {
+                fab.classList.add('is-fullscreen');
+                if (fab.requestFullscreen) fab.requestFullscreen();
+            } else {
+                fab.classList.remove('is-fullscreen');
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        });
+    }
+    document.addEventListener('fullscreenchange', function() {
+        if (!document.fullscreenElement) fab.classList.remove('is-fullscreen');
+    });
+
+    // 2. Show/Hide Video logic
+    var originalPlayYoutube = window.playYoutube;
+    window.playYoutube = function(i) {
+        if (originalPlayYoutube) originalPlayYoutube(i);
+        if (yp) yp.style.display = 'block';
+        if (fa) fa.style.display = 'none';
+        if (fsBtn) fsBtn.style.display = 'block';
+        if (blocker) blocker.style.display = 'none';
     };
 
-    // INTERCEPT YOUTUBE PLAYER STATE CHANGES
-    // We use a setInterval to make sure we attach to the player as soon as it's ready
+    var originalPlayDbSong = window.playDbSong;
+    window.playDbSong = function(i) {
+        if (originalPlayDbSong) originalPlayDbSong(i);
+        if (yp) yp.style.display = 'none';
+        if (fa) fa.style.display = 'block';
+        if (fsBtn) fsBtn.style.display = 'none';
+        if (blocker) blocker.style.display = 'none';
+        fab.classList.remove('is-fullscreen');
+    };
+
+    // 3. When the user clicks the custom "Play Next" button
+    if (blocker) {
+        blocker.onclick = function() {
+            blocker.style.display = 'none';
+            if (yp) yp.style.display = 'block'; // Show the iframe again
+            
+            if (window.simPool && window.simPool.length > 0) {
+                var ri = Math.floor(Math.random() * window.simPool.length);
+                window.ytResults = window.simPool.map(function(x) {
+                    return {
+                        id: { videoId: x.id },
+                        snippet: {
+                            title: x.title,
+                            channelTitle: x.uploaderName,
+                            thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                        }
+                    };
+                });
+                window.playQueue = window.ytResults;
+                window.playYoutube(ri);
+            } else {
+                if (typeof nextTrack === 'function') nextTrack();
+            }
+        };
+    }
+
+    // 4. THE TRAP: Constantly check if the YouTube player exists and hook into its END event
     var checkPlayer = setInterval(function() {
-        if (window.ytPlayer && typeof window.ytPlayer.addEventListener === 'function') {
-            clearInterval(checkPlayer);
+        if (window.ytPlayer && typeof window.ytPlayer.addEventListener === 'function' && !window.ytPlayer._endHookAttached) {
+            window.ytPlayer._endHookAttached = true; // Make sure we only attach once
             
             window.ytPlayer.addEventListener('onStateChange', function(e) {
                 if (e.data === 1) { // Playing
-                    blocker.style.display = 'none';
+                    if (blocker) blocker.style.display = 'none';
+                    if (yp) yp.style.display = 'block';
                 } else if (e.data === 2) { // Paused
-                    blocker.style.display = 'none';
+                    if (blocker) blocker.style.display = 'none';
                 } else if (e.data === 0) { // ENDED
-                    // Show our custom blocker instead of YouTube's end screen!
-                    blocker.style.display = 'flex';
+                    // THE TRAP SPRINGS! Hide YouTube completely and show our custom button.
+                    if (yp) yp.style.display = 'none';
+                    if (blocker) blocker.style.display = 'flex';
                 }
             });
         }
