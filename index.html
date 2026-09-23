@@ -149,7 +149,28 @@ body{font-family:-apple-system,sans-serif;background:#050508;color:#fff;height:1
 #bttBtn{position:fixed;bottom:140px;right:14px;width:54px;height:54px;background:#00e0d0;border-radius:50%;display:flex;justify-content:center;align-items:center;z-index:999999;cursor:pointer;box-shadow:0 4px 16px rgba(0,224,208,.7);font-size:26px;font-weight:900;color:#000;line-height:1;touch-action:none;-webkit-touch-callout:none;user-select:none}
 audio{display:none}
 #youtube-player{position:absolute;top:-9999px;left:-9999px;width:1px;height:1px}
-</style></head><body>
+</style>
+<style>
+#youtube-player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    display: none;
+    z-index: 10;
+    background: #000;
+}
+#youtube-player iframe {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+</style>
+
+</head><body>
 <div class="header" id="mainHeader" style="display:none">
 <div style="width:22px"></div>
 <div class="logo" style="text-align:center;flex:1">B<span>.</span>I</div>
@@ -329,7 +350,7 @@ async function loadSimilarSongs(){if(simLoading)return;if(simPool.length>=500)re
 function onYouTubeIframeAPIReady(){
 try{
 ytPlayer=new YT.Player('youtube-player',{
-height:'1',width:'1',
+height:'100%',width:'100%',
 playerVars:{playsinline:1,controls:0,autoplay:1},
 events:{
 onReady:function(){ytReady=true;},
@@ -347,8 +368,8 @@ else{nextTrack();}
 }
 function ensurePlayer(vid,tries){tries=tries||0;if(ytReady&&ytPlayer&&typeof ytPlayer.loadVideoById==='function'){try{ytPlayer.loadVideoById(vid);ytPlayer.playVideo();}catch(e){}isPlaying=true;updateAllIcons();return;}if(tries<40)setTimeout(function(){ensurePlayer(vid,tries+1);},200);}
 function setTrackInfo(art,title,artist){document.getElementById('miniArt').src=art;document.getElementById('miniTitle').textContent=title;document.getElementById('miniArtist').textContent=artist;document.getElementById('fullArt').src=art;document.getElementById('fullTitle').textContent=title;document.getElementById('fullArtist').textContent=artist;document.getElementById('miniPlayer').classList.add('active');}
-function playDbSong(i){currentSource='db';currentIndex=i;if(ytPlayer&&ytPlayer.pauseVideo)ytPlayer.pauseVideo();var s=songs[i];if(!s)return;setTrackInfo(s.cover_art_url||'https://via.placeholder.com/150',s.title,s.artist_name);var p=document.getElementById('audioPlayer');p.src=s.audio_url;p.playbackRate=playbackSpeed;p.play();isPlaying=true;updateAllIcons();}
-function playYoutube(i){currentSource='youtube';currentIndex=i;document.getElementById('audioPlayer').pause();var t=ytResults[i];if(!t)return;setTrackInfo(t.snippet.thumbnails.high.url,t.snippet.title,t.snippet.channelTitle);ensurePlayer(t.id.videoId);simPool=[];simSimilar=[];simTitle=t.snippet.title;simQIdx=0;document.getElementById('similarGrid').innerHTML='';for(var k=0;k<5;k++)loadSimilarSongs();}
+function playDbSong(i){currentSource='db';currentIndex=i;if(ytPlayer&&ytPlayer.pauseVideo)ytPlayer.pauseVideo();var yp=document.getElementById('youtube-player');var fa=document.getElementById('fullArt');if(yp)yp.style.display='none';if(fa)fa.style.display='block';var s=songs[i];if(!s)return;setTrackInfo(s.cover_art_url||'https://via.placeholder.com/150',s.title,s.artist_name);var p=document.getElementById('audioPlayer');p.src=s.audio_url;p.playbackRate=playbackSpeed;p.play();isPlaying=true;updateAllIcons();}
+function playYoutube(i){currentSource='youtube';currentIndex=i;document.getElementById('audioPlayer').pause();var yp=document.getElementById('youtube-player');var fa=document.getElementById('fullArt');if(yp)yp.style.display='block';if(fa)fa.style.display='none';var t=ytResults[i];if(!t)return;setTrackInfo(t.snippet.thumbnails.high.url,t.snippet.title,t.snippet.channelTitle);ensurePlayer(t.id.videoId);simPool=[];simSimilar=[];simTitle=t.snippet.title;simQIdx=0;document.getElementById('similarGrid').innerHTML='';for(var k=0;k<5;k++)loadSimilarSongs();}
 function playFromQueue(vid){var idx=playQueue.findIndex(function(t){return t.id&&t.id.videoId===vid;});if(idx<0)return;ytResults=playQueue;playYoutube(idx);}
 function togglePlay(){if(currentSource==='youtube'){if(!ytReady||!ytPlayer)return;try{if(isPlaying){ytPlayer.pauseVideo();isPlaying=false;}else{ytPlayer.playVideo();isPlaying=true;}updateAllIcons();}catch(e){}}else{var p=document.getElementById('audioPlayer');if(!p.src)return;if(isPlaying){p.pause();isPlaying=false;}else{p.play();isPlaying=true;}updateAllIcons();}}
 function updateAllIcons(){var sh=isPlaying?'none':'block',hd=isPlaying?'block':'none';['miniPlayIcon','fullPlayIcon'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=sh;});['miniPauseIcon','fullPauseIcon'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=hd;});}
