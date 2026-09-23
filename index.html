@@ -354,6 +354,112 @@ audio{display:none}
 }
 </style>
 
+
+<style id="teal-glass-style">
+/* Deep dark base so the teal pops */
+body { background: #050505 !important; }
+
+/* 1. Cards (Home, For You, Genres) */
+.card, .list-item, .artist-box {
+    background: rgba(0, 224, 208, 0.05) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(0, 224, 208, 0.15) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 0 10px rgba(0, 224, 208, 0.05) !important;
+    border-radius: 16px !important;
+    transition: all 0.3s ease !important;
+}
+
+/* When you tap them, they glow brighter teal */
+.card:active, .list-item:active, .artist-box:active {
+    background: rgba(0, 224, 208, 0.25) !important;
+    border: 1px solid rgba(0, 224, 208, 0.6) !important;
+    box-shadow: 0 0 20px rgba(0, 224, 208, 0.4) !important;
+    transform: scale(0.97);
+}
+
+/* 2. Bottom Navigation & Mini Player */
+.bottom-nav, nav, .mini-player {
+    background: rgba(0, 15, 15, 0.85) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border-top: 1px solid rgba(0, 224, 208, 0.25) !important;
+    box-shadow: 0 -8px 32px 0 rgba(0, 0, 0, 0.9), 0 -2px 15px rgba(0, 224, 208, 0.1) !important;
+}
+
+/* 3. Login Box (Auth) */
+.auth-box {
+    background: rgba(0, 15, 15, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(0, 224, 208, 0.2) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 224, 208, 0.15) !important;
+}
+
+/* Login Inputs */
+.auth-box input {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid rgba(0, 224, 208, 0.2) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    backdrop-filter: blur(5px) !important;
+    transition: all 0.3s ease !important;
+}
+.auth-box input:focus {
+    border-color: #00e0d0 !important;
+    box-shadow: 0 0 15px rgba(0, 224, 208, 0.4) !important;
+}
+
+/* 4. The 'Up Next' card in the video player */
+#videoBlocker {
+    background: rgba(0, 15, 15, 0.9) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(0, 224, 208, 0.5) !important;
+    box-shadow: 0 -4px 20px rgba(0, 224, 208, 0.2) !important;
+}
+</style>
+
+
+
+
+
+<style id="blue-glass-style">
+/* Scroll Up Button Liquid Blue Glass */
+#bttBtn {
+    background: rgba(40, 80, 200, 0.3) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(80, 130, 255, 0.4) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(40, 80, 200, 0.4) !important;
+    color: #fff !important;
+    transition: all 0.3s ease !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#bttBtn:active {
+    background: rgba(60, 120, 255, 0.6) !important;
+    box-shadow: 0 0 25px rgba(60, 120, 255, 0.8) !important;
+    transform: scale(0.9);
+}
+#bttBtn svg {
+    fill: #fff !important;
+    filter: drop-shadow(0 0 4px rgba(60, 120, 255, 0.9));
+}
+
+/* Keep the back button nice and clean too */
+.back-btn, .back-button, #backBtn, [onclick*="back"], [onclick*="close"] {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    color: #fff !important;
+    font-weight: bold !important;
+}
+</style>
+
 </head><body>
 <div class="header" id="mainHeader" style="display:none">
 <div style="width:22px"></div>
@@ -1053,6 +1159,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch(e) {}
     }, 500);
+});
+</script>
+
+
+<script id="back-arrow-script">
+document.addEventListener('DOMContentLoaded', function() {
+    // Find all possible back buttons
+    var backBtns = document.querySelectorAll('#backBtn, .back-btn, .back-button, [onclick*="back"], [onclick*="close"], #closeArtistModal, #closeFullPlayer');
+    
+    // The SVG arrow
+    var arrowSVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>';
+
+    backBtns.forEach(function(btn) {
+        // Only add the arrow if it doesn't already have one
+        if (!btn.querySelector('svg')) {
+            btn.innerHTML = arrowSVG + ' ' + btn.innerHTML;
+        }
+    });
 });
 </script>
 
