@@ -5,5 +5,13 @@
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#00e0d0",
-  "icons": [{"src": "logo_512_final.png", "sizes": "512x512", "type": "image/png"}]
+  "description": "Your personal music streaming app.",
+  "icons": [
+    {
+      "src": "logo_512_final.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
