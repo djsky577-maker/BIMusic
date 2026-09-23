@@ -499,27 +499,36 @@ body { background: #050505 !important; }
 </style>
 
 
-<style id="draggable-mini-style">
+
+
+
+<style id="fixed-mini-player-style">
+/* Restore original size and place */
 #miniPlayer {
     position: fixed !important;
-    bottom: 75px !important; /* Sits just above the bottom nav */
-    left: 10px !important;
-    width: calc(100% - 20px) !important;
-    max-width: 400px !important;
-    z-index: 999999 !important; /* Floats above the artist modal */
-    touch-action: none !important; /* Prevents scrolling while dragging */
-    cursor: grab;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
-    transition: transform 0.1s ease-out, opacity 0.3s ease;
-    border-radius: 12px !important;
+    bottom: 65px !important; /* Sits right above the bottom nav */
+    left: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    z-index: 1500 !important; /* HIGHER than artist modal, LOWER than full player */
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.7) !important;
+    transition: transform 0.3s ease !important;
 }
-#miniPlayer:active {
-    cursor: grabbing;
+
+/* Ensure the artist modal sits BELOW the mini player so it stays visible */
+#artistModal {
+    z-index: 1000 !important;
 }
-/* Prevent text selection while dragging */
-#miniPlayer * {
-    user-select: none;
-    -webkit-user-select: none;
+
+/* Ensure the full player sits ABOVE the mini player */
+#fullPlayer {
+    z-index: 9999 !important;
+}
+
+/* Add padding to the bottom of the artist modal so the last song isn't hidden behind the mini player */
+#artistModal .modal-content, #artistModal > div {
+    padding-bottom: 80px !important;
 }
 </style>
 
@@ -1295,88 +1304,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 
-<script id="draggable-mini-script">
-document.addEventListener('DOMContentLoaded', function() {
-    var miniPlayer = document.getElementById('miniPlayer');
-    if (!miniPlayer) return;
 
-    var isDragging = false;
-    var startX = 0, startY = 0;
-    var currentX = 0, currentY = 0;
-    var hasMoved = false;
-
-    // Initialize its starting position based on its CSS bottom/left
-    var rect = miniPlayer.getBoundingClientRect();
-    var initialLeft = rect.left;
-    var initialTop = rect.top;
-
-    // Change to absolute positioning so we can move it freely
-    miniPlayer.style.bottom = 'auto';
-    miniPlayer.style.left = initialLeft + 'px';
-    miniPlayer.style.top = initialTop + 'px';
-
-    function dragStart(e) {
-        // If the user is clicking a button inside, don't drag
-        if (e.target.closest('button') || e.target.closest('.mini-play-btn')) {
-            return;
-        }
-        
-        isDragging = true;
-        hasMoved = false;
-        
-        var touch = e.touches ? e.touches[0] : e;
-        startX = touch.clientX - miniPlayer.offsetLeft;
-        startY = touch.clientY - miniPlayer.offsetTop;
-        
-        miniPlayer.style.transition = 'none'; // Disable transition for instant drag
-    }
-
-    function dragMove(e) {
-        if (!isDragging) return;
-        
-        e.preventDefault(); // Stop scrolling
-        var touch = e.touches ? e.touches[0] : e;
-        
-        var newX = touch.clientX - startX;
-        var newY = touch.clientY - startY;
-        
-        // Keep it within screen bounds
-        var maxX = window.innerWidth - miniPlayer.offsetWidth;
-        var maxY = window.innerHeight - miniPlayer.offsetHeight;
-        
-        newX = Math.max(0, Math.min(newX, maxX));
-        newY = Math.max(0, Math.min(newY, maxY));
-        
-        // If it moved more than 5 pixels, it's a drag, not a tap
-        if (Math.abs(newX - miniPlayer.offsetLeft) > 5 || Math.abs(newY - miniPlayer.offsetTop) > 5) {
-            hasMoved = true;
-        }
-        
-        miniPlayer.style.left = newX + 'px';
-        miniPlayer.style.top = newY + 'px';
-    }
-
-    function dragEnd(e) {
-        if (!isDragging) return;
-        isDragging = false;
-        miniPlayer.style.transition = 'transform 0.1s ease-out';
-        
-        // If it didn't move much, let the click pass through
-        if (!hasMoved && e.type === 'touchend') {
-            // This was a tap, do nothing special, let the click fire
-        }
-    }
-
-    // Touch events for mobile
-    miniPlayer.addEventListener('touchstart', dragStart, {passive: false});
-    document.addEventListener('touchmove', dragMove, {passive: false});
-    document.addEventListener('touchend', dragEnd);
-
-    // Mouse events for desktop testing
-    miniPlayer.addEventListener('mousedown', dragStart);
-    document.addEventListener('mousemove', dragMove);
-    document.addEventListener('mouseup', dragEnd);
-});
-</script>
 
 </body></html>
