@@ -170,6 +170,13 @@ audio{display:none}
 }
 </style>
 
+
+<style id="video-player-style">
+#fullArtBox { position: relative; overflow: hidden; border-radius: 12px; }
+#youtube-player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 10; background: #000; }
+#youtube-player iframe { width: 100% !important; height: 100% !important; object-fit: cover; }
+</style>
+
 </head><body>
 <div class="header" id="mainHeader" style="display:none">
 <div style="width:22px"></div>
@@ -405,4 +412,47 @@ function bindHoldBtn(){var b=document.getElementById('bttBtn');if(!b||b._bound)r
 document.addEventListener('touchmove',window.stopHold,{passive:true});
 document.addEventListener('touchend',window.stopHold);
 </script><script data-goatcounter="https://bimusic.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<script id="video-player-script">
+document.addEventListener('DOMContentLoaded', function() {
+    // Override playYoutube to show video
+    window.playYoutube = function(i) {
+        currentSource = 'youtube';
+        currentIndex = i;
+        document.getElementById('audioPlayer').pause();
+        var t = ytResults[i];
+        if (!t) return;
+        var yp = document.getElementById('youtube-player');
+        var fa = document.getElementById('fullArt');
+        if (yp) yp.style.display = 'block';
+        if (fa) fa.style.display = 'none';
+        setTrackInfo(t.snippet.thumbnails.high.url, t.snippet.title, t.snippet.channelTitle);
+        ensurePlayer(t.id.videoId);
+        simPool = []; simSimilar = []; simTitle = t.snippet.title; simQIdx = 0;
+        document.getElementById('similarGrid').innerHTML = '';
+        for (var k = 0; k < 5; k++) loadSimilarSongs();
+    };
+
+    // Override playDbSong to show album art
+    window.playDbSong = function(i) {
+        currentSource = 'db';
+        currentIndex = i;
+        if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+        var yp = document.getElementById('youtube-player');
+        var fa = document.getElementById('fullArt');
+        if (yp) yp.style.display = 'none';
+        if (fa) fa.style.display = 'block';
+        var s = songs[i];
+        if (!s) return;
+        setTrackInfo(s.cover_art_url || 'https://via.placeholder.com/150', s.title, s.artist_name);
+        var p = document.getElementById('audioPlayer');
+        p.src = s.audio_url;
+        p.playbackRate = playbackSpeed;
+        p.play();
+        isPlaying = true;
+        updateAllIcons();
+    };
+});
+</script>
+
 </body></html>
