@@ -470,26 +470,26 @@ body { background: #050505 !important; }
 
 
 
+
+
+
 <style id="full-player-ambient-style">
 #fullPlayer {
-    background: rgba(0, 0, 0, 0.85) !important; 
+    background: rgba(0, 0, 0, 0.9) !important; 
     overflow: hidden !important;
 }
 
 #fullPlayerAmbient {
     position: absolute;
-    top: -20px; left: -20px;
-    width: calc(100% + 40px); height: calc(100% + 40px);
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     z-index: 0;
     background-size: cover;
     background-position: center;
-    /* MUCH LIGHTER: 30px blur instead of 80px */
-    filter: blur(30px) saturate(150%) brightness(0.4);
-    /* FORCE GPU: Hardware acceleration */
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
+    /* Blur is fine because the source image is tiny (320x180) */
+    filter: blur(40px) saturate(150%) brightness(0.3);
+    transform: translateZ(0); /* Force GPU acceleration */
     pointer-events: none;
-    /* REMOVED: expensive background-image transition */
 }
 #fullPlayer > *:not(#fullPlayerAmbient), 
 #fullContent > * {
@@ -1222,86 +1222,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-<script id="full-player-ambient-script">
-document.addEventListener('DOMContentLoaded', function() {
-    var fullPlayer = document.getElementById('fullPlayer');
-    if (!fullPlayer) return;
-
-    // Create the ambient background div and put it inside the full player
-    var ambientBg = document.createElement('div');
-    ambientBg.id = 'fullPlayerAmbient';
-    fullPlayer.insertBefore(ambientBg, fullPlayer.firstChild);
-
-    function updateFullPlayerBg(imageUrl) {
-        if (!imageUrl) return;
-        ambientBg.style.backgroundImage = 'url(' + imageUrl + ')';
-    }
-
-    // Hook into playYoutube (uses the official thumbnail as the safe source)
-    var originalPlayYoutube = window.playYoutube;
-    window.playYoutube = function(i) {
-        if (originalPlayYoutube) originalPlayYoutube(i);
-        var t = window.ytResults[i];
-        if (t && t.id && t.id.videoId) {
-            var imgUrl = 'https://img.youtube.com/vi/' + t.id.videoId + '/hqdefault.jpg';
-            updateFullPlayerBg(imgUrl);
-        }
-    };
-
-    // Hook into playDbSong (uses the cover art as the source)
-    var originalPlayDbSong = window.playDbSong;
-    window.playDbSong = function(i) {
-        if (originalPlayDbSong) originalPlayDbSong(i);
-        var s = window.songs[i];
-        if (s && s.cover_art_url) {
-            updateFullPlayerBg(s.cover_art_url);
-        } else {
-            ambientBg.style.backgroundImage = 'none';
-        }
-    };
-});
-</script>
 
 
-<script id="full-player-ambient-script">
-document.addEventListener('DOMContentLoaded', function() {
-    var fullPlayer = document.getElementById('fullPlayer');
-    if (!fullPlayer) return;
 
-    // Create the ambient background div and put it inside the full player
-    var ambientBg = document.createElement('div');
-    ambientBg.id = 'fullPlayerAmbient';
-    fullPlayer.insertBefore(ambientBg, fullPlayer.firstChild);
 
-    function updateFullPlayerBg(imageUrl) {
-        if (!imageUrl) return;
-        ambientBg.style.backgroundImage = 'url(' + imageUrl + ')';
-    }
 
-    // Hook into playYoutube (uses the official thumbnail as the safe source)
-    var originalPlayYoutube = window.playYoutube;
-    window.playYoutube = function(i) {
-        if (originalPlayYoutube) originalPlayYoutube(i);
-        var t = window.ytResults[i];
-        if (t && t.id && t.id.videoId) {
-            var imgUrl = 'https://img.youtube.com/vi/' + t.id.videoId + '/hqdefault.jpg';
-            updateFullPlayerBg(imgUrl);
-        }
-    };
 
-    // Hook into playDbSong (uses the cover art as the source)
-    var originalPlayDbSong = window.playDbSong;
-    window.playDbSong = function(i) {
-        if (originalPlayDbSong) originalPlayDbSong(i);
-        var s = window.songs[i];
-        if (s && s.cover_art_url) {
-            updateFullPlayerBg(s.cover_art_url);
-        } else {
-            ambientBg.style.backgroundImage = 'none';
-        }
-    };
-});
-</script>
+
 
 
 <script id="full-player-ambient-script">
@@ -1315,7 +1242,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateFullPlayerBg(imageUrl) {
         if (!imageUrl) return;
-        // Instantly update without a heavy transition
         ambientBg.style.backgroundImage = 'url(' + imageUrl + ')';
     }
 
@@ -1324,7 +1250,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (originalPlayYoutube) originalPlayYoutube(i);
         var t = window.ytResults[i];
         if (t && t.id && t.id.videoId) {
-            var imgUrl = 'https://img.youtube.com/vi/' + t.id.videoId + '/hqdefault.jpg';
+            // USE TINY THUMBNAIL (320x180) FOR BLUR - ZERO LAG
+            var imgUrl = 'https://img.youtube.com/vi/' + t.id.videoId + '/mqdefault.jpg';
             updateFullPlayerBg(imgUrl);
         }
     };
