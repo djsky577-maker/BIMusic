@@ -699,4 +699,40 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+
+<script id="auto-shuffle-script">
+document.addEventListener('DOMContentLoaded', function() {
+    // Wrap the existing nextTrack function
+    var originalNextTrack = window.nextTrack;
+    window.nextTrack = function() {
+        // If playing YouTube and we have similar songs loaded, play a random one
+        if (currentSource === 'youtube' && window.simPool && window.simPool.length > 0) {
+            // Pick a random song from the similar songs list
+            var randomIndex = Math.floor(Math.random() * window.simPool.length);
+            
+            // Convert the simPool format to the ytResults format the player expects
+            window.ytResults = window.simPool.map(function(x) {
+                return {
+                    id: { videoId: x.id },
+                    snippet: {
+                        title: x.title,
+                        channelTitle: x.uploaderName,
+                        thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                    }
+                };
+            });
+            window.playQueue = window.ytResults;
+            
+            // Play the random song
+            if (typeof window.playYoutube === 'function') {
+                window.playYoutube(randomIndex);
+            }
+        } else {
+            // Fallback to normal behavior if simPool is empty
+            if (originalNextTrack) originalNextTrack();
+        }
+    };
+});
+</script>
+
 </body></html>
