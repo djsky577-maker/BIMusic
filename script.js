@@ -700,99 +700,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-// SMART BACK BTN
-(function() {
-    function initBackButton() {
-        // Inject CSS directly
-        if (!document.getElementById('backBtnStyle')) {
-            var style = document.createElement('style');
-            style.id = 'backBtnStyle';
-            style.textContent = `
-                #backBtnSmart {
-                    display: flex;
-                    position: fixed;
-                    bottom: 90px;
-                    right: 15px;
-                    z-index: 999999;
-                    background: rgba(0, 0, 0, 0.88);
-                    border: 1px solid rgba(255, 255, 255, 0.25);
-                    border-radius: 50%;
-                    width: 52px;
-                    height: 52px;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    transition: all 0.2s ease;
-                }
-                #backBtnSmart:active {
-                    transform: scale(0.9);
-                    background: rgba(0, 224, 208, 0.35);
-                    border-color: #00e0d0;
-                }
-                #backBtnSmart svg {
-                    width: 24px;
-                    height: 24px;
-                    fill: #fff;
-                }
-            `;
-            document.head.appendChild(style);
-        }
 
-        // Create the button
-        if (!document.getElementById('backBtnSmart')) {
-            var btn = document.createElement('div');
-            btn.id = 'backBtnSmart';
-            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>';
-            document.body.appendChild(btn);
-
-            // Smart back behavior
-            btn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                // 1. Close artist modal
-                var artistModal = document.getElementById('artistModal');
-                if (artistModal && artistModal.classList.contains('active')) {
-                    if (typeof window.closeArtistModal === 'function') window.closeArtistModal();
-                    else artistModal.classList.remove('active');
-                    return;
-                }
-
-                // 2. Close full player
-                var fullPlayer = document.getElementById('fullPlayer');
-                if (fullPlayer && fullPlayer.classList.contains('active')) {
-                    if (typeof window.closeFullPlayer === 'function') window.closeFullPlayer();
-                    else fullPlayer.classList.remove('active');
-                    return;
-                }
-
-                // 3. Go back to Home tab
-                var navItems = document.querySelectorAll('.nav-item');
-                if (navItems.length > 0) navItems[0].click();
-            };
-        }
-
-        // Intercept hardware back button
-        history.pushState({page: 'app'}, '', '');
-        window.addEventListener('popstate', function() {
-            var backBtn = document.getElementById('backBtnSmart');
-            if (backBtn) {
-                backBtn.click();
-                history.pushState({page: 'app'}, '', '');
-            }
-        });
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initBackButton);
-    } else {
-        initBackButton();
-    }
-})();
-// END SMART BACK BTN
 
 
 // UPDATE BTN
@@ -873,3 +781,124 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 })();
 // END UPDATE BTN
+
+
+// SMART BACK BTN
+(function() {
+    var historyStack = [];
+    var isNavigatingBack = false;
+
+    function getCurrentView() {
+        // Returns a string ID for the current screen
+        var artistModal = document.getElementById('artistModal');
+        if (artistModal && artistModal.classList.contains('active')) {
+            return { view: 'artist', id: window.currentArtist ? window.currentArtist.name : null };
+        }
+        var fullPlayer = document.getElementById('fullPlayer');
+        if (fullPlayer && fullPlayer.classList.contains('active')) {
+            return { view: 'fullPlayer' };
+        }
+        // Determine current tab
+        var navItems = document.querySelectorAll('.nav-item');
+        for (var i = 0; i < navItems.length; i++) {
+            if (navItems[i].classList.contains('active') || navItems[i].style.color === 'rgb(0, 224, 208)') {
+                return { view: 'tab', id: i };
+            }
+        }
+        // Default: home tab
+        var homeTab = document.getElementById('tab-home');
+        if (homeTab && homeTab.style.display !== 'none') return { view: 'tab', id: 0 };
+        return { view: 'unknown' };
+    }
+
+    function pushHistory() {
+        if (isNavigatingBack) return;
+        var current = getCurrentView();
+        var last = historyStack[historyStack.length - 1];
+        // Only push if it's different from the last entry
+        if (!last || last.view !== current.view || last.id !== current.id) {
+            historyStack.push(current);
+            if (historyStack.length > 30) historyStack.shift(); // cap the stack
+        }
+    }
+
+    function goBack() {
+        if (historyStack.length < 2) {
+            // Nothing to go back to — go home
+            var navItems = document.querySelectorAll('.nav-item');
+            if (navItems.length > 0) navItems[0].click();
+            return;
+        }
+        isNavigatingBack = true;
+        historyStack.pop(); // Remove current
+        var prev = historyStack[historyStack.length - 1];
+
+        if (prev.view === 'artist') {
+            // Close full player if open
+            var fp = document.getElementById('fullPlayer');
+            if (fp && fp.classList.contains('active')) fp.classList.remove('active');
+            // Open artist modal
+            if (typeof window.openArtistProfile === 'function' && window.currentArtist) {
+                // Artist is already shown, just make sure modal is active
+                var am = document.getElementById('artistModal');
+                if (am) am.classList.add('active');
+            }
+        } else if (prev.view === 'fullPlayer') {
+            // Close artist modal if open
+            var am = document.getElementById('artistModal');
+            if (am && am.classList.contains('active')) am.classList.remove('active');
+            // Open full player
+            if (typeof window.openFullPlayer === 'function') window.openFullPlayer();
+        } else if (prev.view === 'tab') {
+            // Close modals
+            var am2 = document.getElementById('artistModal');
+            if (am2 && am2.classList.contains('active')) am2.classList.remove('active');
+            var fp2 = document.getElementById('fullPlayer');
+            if (fp2 && fp2.classList.contains('active')) fp2.classList.remove('active');
+            // Switch to the previous tab
+            var navItems = document.querySelectorAll('.nav-item');
+            if (navItems[prev.id]) navItems[prev.id].click();
+        }
+
+        setTimeout(function() { isNavigatingBack = false; }, 300);
+    }
+
+    function initBackButton() {
+        // Inject CSS
+        if (!document.getElementById('backBtnStyle')) {
+            var style = document.createElement('style');
+            style.id = 'backBtnStyle';
+            style.textContent = "#backBtnSmart{display:flex;position:fixed;bottom:90px;right:15px;z-index:999999;background:rgba(0,0,0,0.88);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:52px;height:52px;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:all 0.2s ease;}#backBtnSmart:active{transform:scale(0.9);background:rgba(0,224,208,0.35);border-color:#00e0d0;}#backBtnSmart svg{width:24px;height:24px;fill:#fff;}";
+            document.head.appendChild(style);
+        }
+
+        // Create button
+        if (!document.getElementById('backBtnSmart')) {
+            var btn = document.createElement('div');
+            btn.id = 'backBtnSmart';
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>';
+            document.body.appendChild(btn);
+
+            btn.onclick = function(e) { e.preventDefault(); e.stopPropagation(); goBack(); };
+        }
+
+        // Watch for screen changes every 300ms
+        setInterval(function() {
+            pushHistory();
+        }, 300);
+
+        // Intercept hardware back button
+        history.pushState({page: 'app'}, '', '');
+        window.addEventListener('popstate', function() {
+            goBack();
+            history.pushState({page: 'app'}, '', '');
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initBackButton);
+    } else {
+        initBackButton();
+    }
+})();
+// END SMART BACK BTN
