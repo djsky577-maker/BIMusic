@@ -1,0 +1,498 @@
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,sans-serif;background:#050508;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+::-webkit-scrollbar{display:none}
+.scroll-x{display:flex;overflow-x:auto;gap:12px;padding-bottom:8px}
+.header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 8px}
+.header .logo{font-size:1.4rem;font-weight:900}
+.header .logo span{color:#00e0d0}
+.header svg{width:22px;height:22px;fill:#fff}
+.search-row{display:flex;gap:10px;padding:8px 18px 12px}
+.search-row input{flex:1;padding:12px 14px;border-radius:12px;border:1px solid #1e1e28;background:#0e0e14;color:#fff;font-size:.9rem}
+.search-row button{padding:0 18px;border-radius:12px;border:none;background:#00e0d0;color:#000;font-weight:700;cursor:pointer}
+.nav-tabs{display:flex;gap:8px;padding:0 18px 12px;overflow-x:auto}
+.nav-tab{padding:8px 14px;border-radius:20px;color:#7a7a8a;font-size:.82rem;font-weight:600;white-space:nowrap;cursor:pointer;border:1px solid transparent}
+.nav-tab.active{background:#0e0e14;color:#fff;border-color:#00e0d0}
+.main-content{flex:1;overflow-y:auto;padding-bottom:200px}
+.view{display:none;padding:0 18px}
+.view.active{display:block}
+.hero{position:relative;border-radius:16px;overflow:hidden;height:160px;margin-bottom:20px;background:linear-gradient(135deg,#1a0a2e,#0a2540);display:flex;align-items:flex-end;padding:16px}
+.hero::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=800') center/cover;opacity:.45}
+.hero-content{position:relative;z-index:2}
+.hero .tag{font-size:.6rem;letter-spacing:2px;color:#00e0d0;font-weight:700;margin-bottom:5px}
+.hero h2{font-size:1.35rem;font-weight:800;line-height:1.15;margin-bottom:5px}
+.hero p{font-size:.72rem;color:#ccc;margin-bottom:10px;max-width:75%}
+.hero button{background:#00e0d0;border:none;color:#000;padding:8px 16px;border-radius:10px;font-weight:700;font-size:.8rem;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.hero button svg{width:13px;height:13px;fill:#000}
+.section{margin-bottom:22px}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.section-header h3{font-size:1rem;font-weight:700}
+.card{width:120px;flex:0 0 auto;cursor:pointer}
+.card-img{width:120px;height:120px;border-radius:12px;background:#1a1a24;overflow:hidden;margin-bottom:6px}
+.card-img img{width:100%;height:100%;object-fit:cover}
+.card-title{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.card-sub{font-size:.65rem;color:#7a7a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.artist-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%}
+.artist-box{cursor:pointer;text-align:center;min-width:0}
+.artist-img{width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;margin:0 auto 6px;background:#1a1a24;border:2px solid #1e1e28}
+.artist-img img{width:100%;height:100%;object-fit:cover;display:block}
+.artist-name{font-size:.7rem;font-weight:600;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px;margin-bottom:4px}
+.follow-btn{padding:4px 10px;border-radius:14px;border:1px solid #00e0d0;background:transparent;color:#00e0d0;font-size:.62rem;font-weight:700;cursor:pointer}
+.follow-btn.following{background:#00e0d0;color:#000}
+.list-item{display:flex;align-items:center;gap:12px;padding:9px;border-radius:10px;background:#0e0e14;margin-bottom:8px;border:1px solid #1a1a24;cursor:pointer}
+.list-item img{width:46px;height:46px;border-radius:8px;object-fit:cover}
+.list-info{flex:1;overflow:hidden}
+.list-title{font-size:.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-sub{font-size:.7rem;color:#7a7a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dl-btn{background:none;border:none;padding:6px;cursor:pointer;margin-left:auto;flex-shrink:0}
+.dl-btn svg{width:20px;height:20px;fill:#7a7a8a}
+.dl-btn:active svg{fill:#00e0d0}
+.mix-list-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;background:#0e0e14;margin-bottom:8px;border:1px solid #1a1a24;cursor:pointer}
+.mix-list-item img{width:62px;height:62px;border-radius:8px;object-fit:cover;background:#1a1a24;flex-shrink:0}
+.mix-info{flex:1;overflow:hidden;min-width:0}
+.mix-title{font-size:.82rem;font-weight:600;color:#fff;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:3px}
+.mix-sub{font-size:.68rem;color:#7a7a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.genre-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.genre-card{height:90px;border-radius:14px;padding:12px;display:flex;align-items:flex-end;font-weight:700;cursor:pointer}
+.auth-box{background:#0e0e14;padding:28px 22px;border-radius:20px;max-width:400px;margin:50px auto;border:1px solid #1e1e28}
+.auth-box h2{margin-bottom:6px;color:#00e0d0;font-size:1.3rem;text-align:center}
+.auth-box p.sub{color:#7a7a8a;font-size:.82rem;margin-bottom:20px;text-align:center}
+.auth-box input{width:100%;padding:13px;margin-bottom:10px;border-radius:12px;border:1px solid #1e1e28;background:#050508;color:#fff;font-size:.9rem}
+.auth-box button{width:100%;padding:13px;border-radius:12px;border:none;background:#00e0d0;color:#000;font-weight:700;cursor:pointer;margin-bottom:8px;font-size:.9rem}
+.auth-box button.secondary{background:#1a1a24;color:#fff}
+.auth-error{color:#ff5555;font-size:.82rem;margin-bottom:10px;min-height:18px;text-align:center}
+.profile-box{background:#0e0e14;padding:20px;border-radius:16px;border:1px solid #1e1e28;text-align:center;margin-bottom:14px}
+.profile-box .avatar{width:64px;height:64px;background:linear-gradient(135deg,#00e0d0,#7c3aed);border-radius:50%;display:flex;justify-content:center;align-items:center;margin:0 auto 12px;font-size:1.6rem;font-weight:900}
+.profile-box .email{color:#7a7a8a;font-size:.82rem}
+.desc-box{background:#0e0e14;padding:16px;border-radius:14px;border:1px solid #1e1e28;margin-bottom:12px}
+.desc-box p{font-size:.82rem;color:#ccc;line-height:1.6;margin-bottom:10px}
+.desc-box .author{font-size:.72rem;color:#7a7a8a}
+.profile-btn{width:100%;padding:13px;border-radius:12px;border:1px solid #1e1e28;background:#0e0e14;color:#fff;font-weight:600;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.profile-btn.share{background:#00e0d0;color:#000;border-color:#00e0d0;justify-content:center}
+.profile-btn.coming-soon{color:#7a7a8a}
+.profile-btn.danger{color:#ff4d4d;border-color:#3a1a1a;justify-content:center}
+.profile-btn.contact{background:#25D366;color:#fff;border-color:#25D366;justify-content:center;gap:8px}
+.profile-btn.contact svg{width:22px;height:22px;fill:#fff}
+.soon-badge{background:#00e0d0;color:#000;font-size:.55rem;font-weight:900;padding:3px 8px;border-radius:8px;letter-spacing:.5px}
+.profile-section-title{font-size:.68rem;letter-spacing:2px;color:#7a7a8a;padding:16px 4px 8px;font-weight:700}
+.mini-player{position:fixed;left:8px;right:8px;bottom:76px;background:#0e0e14;border-radius:12px;padding:7px 10px;display:none;align-items:center;gap:10px;z-index:100;border:1px solid #2a2a35;cursor:pointer}
+.mini-player.active{display:flex}
+.mini-player img{width:40px;height:40px;border-radius:8px;object-fit:cover}
+.mini-info{flex:1;overflow:hidden}
+.mini-title{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-artist{font-size:.65rem;color:#7a7a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-btn{background:none;border:none;padding:5px;cursor:pointer}
+.mini-btn svg{width:20px;height:20px;fill:#fff}
+.full-player{position:fixed;inset:0;background:#050508;z-index:200;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .35s}
+.full-player.active{transform:translateY(0)}
+.full-content{flex:1;overflow-y:auto;padding:0 18px 20px}
+.full-sticky-logo{position:sticky;top:0;background:#050508;text-align:center;padding:12px 0 6px;font-size:1.3rem;font-weight:900;z-index:11}
+.full-sticky-logo span{color:#00e0d0}
+.full-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.full-header svg{width:22px;height:22px;fill:#fff;cursor:pointer}
+.full-art{width:100%;aspect-ratio:1;max-width:220px;margin:0 auto 10px;border-radius:16px;overflow:hidden}
+.full-art img{width:100%;height:100%;object-fit:cover}
+.full-info{text-align:center;margin-bottom:10px}
+.full-title{font-size:.95rem;font-weight:800;margin-bottom:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.full-artist{font-size:.75rem;color:#a0a0b0}
+.full-progress{margin-bottom:10px}
+.full-progress input{width:100%;-webkit-appearance:none;background:transparent}
+.full-progress input::-webkit-slider-runnable-track{height:3px;background:#2a2a35;border-radius:2px}
+.full-progress input::-webkit-slider-thumb{-webkit-appearance:none;height:12px;width:12px;border-radius:50%;background:#00e0d0;margin-top:-5px}
+.full-times{display:flex;justify-content:space-between;font-size:.65rem;color:#7a7a8a;margin-top:3px}
+.full-controls{display:flex;justify-content:space-between;align-items:center;padding:0 6px 8px}
+.full-controls .ctrl-btn{background:none;border:none;padding:6px;cursor:pointer}
+.full-controls .ctrl-btn svg{width:26px;height:26px;fill:#fff}
+.full-controls .main-play{width:56px;height:56px;background:#00e0d0;border-radius:50%;display:flex;justify-content:center;align-items:center;border:none;cursor:pointer}
+.full-controls .main-play svg{fill:#000;width:24px;height:24px}
+.full-extra{display:flex;justify-content:space-around;padding:0 6px 10px}
+.full-extra button{background:none;border:none;cursor:pointer;padding:6px;display:flex;flex-direction:column;align-items:center}
+.full-extra svg{width:18px;height:18px;fill:#7a7a8a}
+.full-extra button.active svg{fill:#00e0d0}
+.full-extra .speed-label{font-size:.7rem;font-weight:700;color:#7a7a8a}
+.similar-title{font-size:.85rem;font-weight:700;margin:10px 0 10px;color:#fff}
+.similar-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.similar-card{cursor:pointer;min-width:0}
+.similar-card-img{width:100%;aspect-ratio:1;border-radius:10px;background:#1a1a24;overflow:hidden;margin-bottom:5px}
+.similar-card-img img{width:100%;height:100%;object-fit:cover}
+.similar-card-title{font-size:.65rem;font-weight:600;color:#fff;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px}
+.similar-card-artist{font-size:.58rem;color:#7a7a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.artist-modal{position:fixed;inset:0;background:#050508;z-index:210;transform:translateY(100%);transition:transform .35s;overflow-y:auto;padding:18px}
+.artist-modal.active{transform:translateY(0)}
+.artist-modal .back-btn{background:none;border:none;padding:6px 0;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:8px;color:#fff;font-size:.88rem}
+.artist-modal .back-btn svg{width:20px;height:20px;fill:#fff}
+.artist-hero{text-align:center;margin-bottom:22px}
+.artist-hero-img{width:130px;height:130px;border-radius:50%;overflow:hidden;margin:0 auto 14px;border:3px solid #00e0d0}
+.artist-hero-img img{width:100%;height:100%;object-fit:cover}
+.artist-hero-name{font-size:1.4rem;font-weight:900;margin-bottom:5px}
+.artist-hero-stats{font-size:.78rem;color:#7a7a8a;margin-bottom:14px}
+.artist-follow-btn{padding:9px 36px;border-radius:22px;border:1px solid #00e0d0;background:transparent;color:#00e0d0;font-weight:700;font-size:.85rem;cursor:pointer}
+.artist-follow-btn.following{background:#00e0d0;color:#000}
+.artist-section-title{font-size:.95rem;font-weight:700;margin:18px 0 10px}
+.bottom-nav{position:fixed;bottom:0;left:0;width:100%;height:66px;background:#0a0a0f;border-top:1px solid #1a1a24;display:none;justify-content:space-around;align-items:center;z-index:101}
+.bottom-nav.active{display:flex}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;color:#555;cursor:pointer;font-size:.6rem;font-weight:600;padding:6px 12px}
+.nav-item.active{color:#00e0d0}
+.nav-item svg{width:20px;height:20px;fill:currentColor}
+.load-more-wrap{text-align:center;padding:16px}
+.load-more-wrap button{padding:12px 30px;background:#00e0d0;color:#000;border:none;border-radius:12px;font-weight:700;cursor:pointer}
+.soon-modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999999;display:none;align-items:center;justify-content:center;padding:20px}
+.soon-modal.show{display:flex}
+.soon-card{background:#0e0e14;border:1px solid #1e1e28;border-radius:20px;padding:26px 22px;max-width:340px;width:100%;text-align:center}
+.soon-card .icon{width:64px;height:64px;background:linear-gradient(135deg,#7c3aed,#00e0d0);border-radius:50%;display:flex;justify-content:center;align-items:center;margin:0 auto 16px;font-size:1.8rem}
+.soon-card h3{font-size:1.15rem;font-weight:800;margin-bottom:8px}
+.soon-card p{font-size:.85rem;color:#a0a0b0;line-height:1.5;margin-bottom:20px}
+.soon-card .btn-row{display:flex;gap:10px}
+.soon-card button{flex:1;padding:12px;border-radius:12px;border:none;font-weight:700;cursor:pointer}
+.soon-card .btn-cancel{background:#1a1a24;color:#fff}
+.soon-card .btn-contact{background:#25D366;color:#fff}
+#bttBtn{position:fixed;bottom:140px;right:14px;width:54px;height:54px;background:#00e0d0;border-radius:50%;display:flex;justify-content:center;align-items:center;z-index:999999;cursor:pointer;box-shadow:0 4px 16px rgba(0,224,208,.7);font-size:26px;font-weight:900;color:#000;line-height:1;touch-action:none;-webkit-touch-callout:none;user-select:none}
+audio{display:none}
+#youtube-player{position:absolute;top:-9999px;left:-9999px;width:1px;height:1px}
+
+
+#youtube-player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    display: none;
+    z-index: 10;
+    background: #000;
+}
+#youtube-player iframe {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+
+
+#fullArtBox { position: relative; overflow: hidden; border-radius: 12px; }
+#youtube-player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 10; background: #000; }
+#youtube-player iframe { width: 100% !important; height: 100% !important; object-fit: cover; }
+
+
+#fullArtBox { position: relative !important; overflow: hidden !important; border-radius: 12px !important; }
+#youtube-player { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; z-index: 10 !important; display: none; }
+#youtube-player iframe { width: 100% !important; height: 100% !important; position: absolute !important; top: 0 !important; left: 0 !important; }
+
+
+#fullArtBox {
+    position: relative !important;
+    width: 100% !important;
+    height: 240px !important;  /* Standard mobile YouTube size */
+    overflow: hidden !important;
+    border-radius: 12px !important;
+    margin-bottom: 15px !important;
+    background: #000 !important;
+}
+#youtube-player {
+    position: absolute !important;
+    top: 0 !important; left: 0 !important;
+    width: 100% !important; height: 100% !important;
+    display: none;
+    z-index: 10 !important;
+}
+#youtube-player iframe {
+    width: 100% !important; height: 100% !important;
+    object-fit: contain !important; /* Keeps the video shape, doesn't stretch */
+}
+#fullArt {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 12px !important;
+    display: block;
+}
+
+
+#fullArtBox {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 500 !important;
+    width: 100% !important;
+    max-width: 450px !important;
+    aspect-ratio: 16 / 9 !important;
+    height: auto !important;
+    overflow: hidden !important;
+    border-radius: 12px !important;
+    margin: 0 auto 15px auto !important;
+    background: #000 !important;
+}
+#fullArtBox.is-fullscreen {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important;
+    width: 100vw !important; height: 100vh !important;
+    max-width: 100vw !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    z-index: 99999 !important;
+}
+#youtube-player {
+    position: absolute !important;
+    top: 0 !important; left: 0 !important;
+    width: 100% !important; height: 100% !important;
+    display: none;
+    z-index: 10 !important;
+}
+#youtube-player iframe {
+    width: 100% !important; height: 100% !important;
+    border: none !important;
+}
+#fullArt {
+    width: 100% !important; height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+#fsOverlayBtn {
+    position: absolute;
+    bottom: 10px; right: 10px;
+    z-index: 50;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none; border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 20px;
+    display: none;
+    cursor: pointer;
+}
+
+
+#videoBlocker {
+    display: none;
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%;
+    height: 85px;
+    z-index: 99999 !important;
+    background: rgba(10, 10, 10, 0.95);
+    color: white;
+    padding: 10px 15px;
+    box-sizing: border-box;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    border-radius: 0 0 12px 12px;
+    border-top: 2px solid #00e0d0;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease-in-out;
+}
+#videoBlocker.show {
+    display: flex;
+}
+#nextSongImg {
+    width: 55px;
+    height: 55px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+#nextSongDetails {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+#nextSongTitle {
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #fff;
+}
+#nextSongArtist {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#nextSongBtn {
+    background: #00e0d0;
+    color: #000;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+
+/* Deep dark base so the teal pops */
+body { background: #050505 !important; }
+
+/* 1. Cards (Home, For You, Genres) */
+.card, .list-item, .artist-box {
+    background: rgba(0, 224, 208, 0.05) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(0, 224, 208, 0.15) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 0 10px rgba(0, 224, 208, 0.05) !important;
+    border-radius: 16px !important;
+    transition: all 0.3s ease !important;
+}
+
+/* When you tap them, they glow brighter teal */
+.card:active, .list-item:active, .artist-box:active {
+    background: rgba(0, 224, 208, 0.25) !important;
+    border: 1px solid rgba(0, 224, 208, 0.6) !important;
+    box-shadow: 0 0 20px rgba(0, 224, 208, 0.4) !important;
+    transform: scale(0.97);
+}
+
+/* 2. Bottom Navigation & Mini Player */
+.bottom-nav, nav, .mini-player {
+    background: rgba(0, 15, 15, 0.85) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border-top: 1px solid rgba(0, 224, 208, 0.25) !important;
+    box-shadow: 0 -8px 32px 0 rgba(0, 0, 0, 0.9), 0 -2px 15px rgba(0, 224, 208, 0.1) !important;
+}
+
+/* 3. Login Box (Auth) */
+.auth-box {
+    background: rgba(0, 15, 15, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(0, 224, 208, 0.2) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 224, 208, 0.15) !important;
+}
+
+/* Login Inputs */
+.auth-box input {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid rgba(0, 224, 208, 0.2) !important;
+    border-radius: 10px !important;
+    color: #fff !important;
+    backdrop-filter: blur(5px) !important;
+    transition: all 0.3s ease !important;
+}
+.auth-box input:focus {
+    border-color: #00e0d0 !important;
+    box-shadow: 0 0 15px rgba(0, 224, 208, 0.4) !important;
+}
+
+/* 4. The 'Up Next' card in the video player */
+#videoBlocker {
+    background: rgba(0, 15, 15, 0.9) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(0, 224, 208, 0.5) !important;
+    box-shadow: 0 -4px 20px rgba(0, 224, 208, 0.2) !important;
+}
+
+
+/* Scroll Up Button Liquid Blue Glass */
+#bttBtn {
+    background: rgba(40, 80, 200, 0.3) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(80, 130, 255, 0.4) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(40, 80, 200, 0.4) !important;
+    color: #fff !important;
+    transition: all 0.3s ease !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#bttBtn:active {
+    background: rgba(60, 120, 255, 0.6) !important;
+    box-shadow: 0 0 25px rgba(60, 120, 255, 0.8) !important;
+    transform: scale(0.9);
+}
+#bttBtn svg {
+    fill: #fff !important;
+    filter: drop-shadow(0 0 4px rgba(60, 120, 255, 0.9));
+}
+
+/* Keep the back button nice and clean too */
+.back-btn, .back-button, #backBtn, [onclick*="back"], [onclick*="close"] {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    color: #fff !important;
+    font-weight: bold !important;
+}
+
+
+#fullPlayer {
+    background: rgba(0, 0, 0, 0.9) !important; 
+    overflow: hidden !important;
+}
+
+#fullPlayerAmbient {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    background-size: cover;
+    background-position: center;
+    /* Blur is fine because the source image is tiny (320x180) */
+    filter: blur(40px) saturate(150%) brightness(0.3);
+    transform: translateZ(0); /* Force GPU acceleration */
+    pointer-events: none;
+}
+#fullPlayer > *:not(#fullPlayerAmbient), 
+#fullContent > * {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* Restore original size and place */
+#miniPlayer {
+    position: fixed !important;
+    bottom: 65px !important; /* Sits right above the bottom nav */
+    left: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    z-index: 1500 !important; /* HIGHER than artist modal, LOWER than full player */
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.7) !important;
+    transition: transform 0.3s ease !important;
+}
+
+/* Ensure the artist modal sits BELOW the mini player so it stays visible */
+#artistModal {
+    z-index: 1000 !important;
+}
+
+/* Ensure the full player sits ABOVE the mini player */
+#fullPlayer {
+    z-index: 9999 !important;
+}
+
+/* Add padding to the bottom of the artist modal so the last song isn't hidden behind the mini player */
+#artistModal .modal-content, #artistModal > div {
+    padding-bottom: 80px !important;
+}
+
+
+#downloadApkBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #00e0d0, #008f85);
+    color: #000;
+    font-weight: bold;
+    text-decoration: none;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin: 20px auto;
+    width: fit-content;
+    box-shadow: 0 4px 15px rgba(0, 224, 208, 0.4);
+    transition: all 0.3s ease;
+    font-size: 15px;
+}
+#downloadApkBtn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(0, 224, 208, 0.6);
+}
