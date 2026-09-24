@@ -534,6 +534,31 @@ body { background: #050505 !important; }
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#00e0d0">
+
+<style id="apk-btn-style">
+#downloadApkBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #00e0d0, #008f85);
+    color: #000;
+    font-weight: bold;
+    text-decoration: none;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin: 20px auto;
+    width: fit-content;
+    box-shadow: 0 4px 15px rgba(0, 224, 208, 0.4);
+    transition: all 0.3s ease;
+    font-size: 15px;
+}
+#downloadApkBtn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(0, 224, 208, 0.6);
+}
+</style>
+
 </head><body>
 <div class="header" id="mainHeader" style="display:none">
 <div style="width:22px"></div>
@@ -549,7 +574,13 @@ body { background: #050505 !important; }
 <div class="nav-tab" onclick="switchHomeTab('genres',this)">Genres</div>
 </div>
 <div class="main-content" id="mainContent">
-<div class="view active" id="view-auth"><div class="auth-box"><h2 id="authTitle">Log In</h2><p class="sub" id="authSubtitle">Welcome back to B.I Music</p><div class="auth-error" id="authError"></div><input type="email" id="authEmail" placeholder="Email address"><input type="password" id="authPassword" placeholder="Password"><button id="authBtn" onclick="handleAuth()">Log In</button><button class="secondary" onclick="toggleAuthMode()" id="authSwitchBtn">Need an account? Register</button></div></div>
+<div class="view active" id="view-auth"><div class="auth-box"><h2 id="authTitle">Log In</h2><p class="sub" id="authSubtitle">Welcome back to B.I Music</p><div class="auth-error" id="authError"></div>
+
+<a id="downloadApkBtn" href="https://drive.google.com/uc?export=download&id=1wCodH8y0cn_4JE3pa8v9Uq65sr6Kpf3i" target="_blank">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
+    Download B.I Music App
+</a>
+<input type="email" id="authEmail" placeholder="Email address"><input type="password" id="authPassword" placeholder="Password"><button id="authBtn" onclick="handleAuth()">Log In</button><button class="secondary" onclick="toggleAuthMode()" id="authSwitchBtn">Need an account? Register</button></div></div>
 <div class="view" id="view-home">
 <div class="home-tab" id="tab-home" style="display:block">
 <div class="hero"><div class="hero-content"><div class="tag">GOOD VIBES ONLY</div><h2>Music for<br>every mood</h2><p>Discover new songs, artists and playlists.</p><button onclick="playHeroSong()"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Play Now</button></div></div>
@@ -1343,6 +1374,20 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js');
   });
 }
+</script>
+
+
+<script id="apk-btn-script">
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('downloadApkBtn');
+    if (!btn) return;
+    var isInApp = /wv/.test(navigator.userAgent) || window.location.protocol === 'file:' || (window.Android && typeof window.Android !== 'undefined');
+    if (isInApp) {
+        btn.style.display = 'none';
+    } else {
+        btn.style.display = 'flex';
+    }
+});
 </script>
 
 </body></html>
