@@ -475,8 +475,15 @@ body { background: #050505 !important; }
 }
 
 
+
+#downloadApkBtn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(0, 224, 208, 0.6);
+}
+
+
 #downloadApkBtn {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     gap: 10px;
@@ -491,6 +498,8 @@ body { background: #050505 !important; }
     box-shadow: 0 4px 15px rgba(0, 224, 208, 0.4);
     transition: all 0.3s ease;
     font-size: 15px;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 #downloadApkBtn:active {
     transform: scale(0.95);

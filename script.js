@@ -685,10 +685,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', function() {
     var btn = document.getElementById('downloadApkBtn');
     if (!btn) return;
-    var isInApp = /wv/.test(navigator.userAgent) || window.location.protocol === 'file:' || (window.Android && typeof window.Android !== 'undefined');
-    if (isInApp) {
-        btn.style.display = 'none';
-    } else {
+     else {
         btn.style.display = 'flex';
     }
 });
