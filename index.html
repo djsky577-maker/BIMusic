@@ -534,6 +534,35 @@ body { background: #050505 !important; }
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#00e0d0">
+
+<style id="update-btn-style">
+#updateAppBtn {
+    display: none;
+    position: fixed;
+    bottom: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999999;
+    background: rgba(0, 224, 208, 0.2);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 224, 208, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 224, 208, 0.4);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.05); }
+    100% { transform: translateX(-50%) scale(1); }
+}
+</style>
+
 </head><body>
 <div class="header" id="mainHeader" style="display:none">
 <div style="width:22px"></div>
@@ -1343,6 +1372,32 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js');
   });
 }
+</script>
+
+
+<button id="updateAppBtn" onclick="forceAppUpdate()">🔄 Update Available - Tap to Refresh</button>
+<script id="update-btn-script">
+document.addEventListener('DOMContentLoaded', function() {
+    var currentVersion = localStorage.getItem('bimusic_version');
+    
+    // 🚨 CHANGE THIS NUMBER EVERY TIME YOU PUSH A NEW UPDATE!
+    var NEW_VERSION = 'v1.0.1'; 
+
+    if (currentVersion !== NEW_VERSION) {
+        var btn = document.getElementById('updateAppBtn');
+        if (btn) btn.style.display = 'block';
+    }
+
+    window.forceAppUpdate = function() {
+        localStorage.setItem('bimusic_version', NEW_VERSION);
+        var btn = document.getElementById('updateAppBtn');
+        if (btn) btn.innerHTML = 'Updating...';
+        
+        setTimeout(function() {
+            window.location.href = window.location.pathname + '?v=' + Date.now();
+        }, 500);
+    };
+});
 </script>
 
 </body></html>
