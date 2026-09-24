@@ -694,12 +694,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+
+
+
 // SMART BACK BTN
 (function() {
     document.addEventListener('DOMContentLoaded', function() {
-        // Inject minimal CSS (only for the button) so we don't touch style.css
+        // Inject CSS for the back button
         var style = document.createElement('style');
-        style.textContent = "#blBackBtn{display:none;position:fixed;bottom:90px;left:15px;z-index:99999;background:rgba(0,0,0,0.88);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:52px;height:52px;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}#blBackBtn:active{transform:scale(0.9);background:rgba(0,224,208,0.35);border-color:#00e0d0;}#blBackBtn svg{width:24px;height:24px;fill:#fff;}#blBackBtn.show{display:flex;}";
+        style.textContent = "#blBackBtn{display:none;position:fixed;bottom:90px;right:15px;z-index:99999;background:rgba(0,0,0,0.88);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:52px;height:52px;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}#blBackBtn:active{transform:scale(0.9);background:rgba(0,224,208,0.35);border-color:#00e0d0;}#blBackBtn svg{width:24px;height:24px;fill:#fff;}#blBackBtn.show{display:flex;}";
         document.head.appendChild(style);
 
         var btn = document.createElement('div');
@@ -728,7 +731,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         btn.onclick = function(e) { e.preventDefault(); e.stopPropagation(); goBack(); };
 
-        // Show/hide based on current screen
         setInterval(function() {
             var artistModal = document.getElementById('artistModal');
             var fullPlayer = document.getElementById('fullPlayer');
@@ -740,7 +742,6 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.style.display = show ? 'flex' : 'none';
         }, 300);
 
-        // Android hardware back button
         history.pushState({p:1}, '', '');
         window.addEventListener('popstate', function() {
             if (goBack()) { history.pushState({p:1}, '', ''); }

@@ -496,3 +496,10 @@ body { background: #050505 !important; }
     transform: scale(0.95);
     box-shadow: 0 2px 8px rgba(0, 224, 208, 0.6);
 }
+
+
+/* Move scroll button to bottom-left */
+#bttBtn {
+    left: 15px !important;
+    right: auto !important;
+}
