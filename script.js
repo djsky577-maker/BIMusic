@@ -793,3 +793,83 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 })();
 // END SMART BACK BTN
+
+
+// UPDATE BTN
+(function() {
+    function initUpdateButton() {
+        // Inject CSS for the update button
+        if (!document.getElementById('updateBtnStyle')) {
+            var style = document.createElement('style');
+            style.id = 'updateBtnStyle';
+            style.textContent = `
+                #updateBtnSmart {
+                    display: none;
+                    position: fixed;
+                    bottom: 150px;
+                    right: 15px;
+                    z-index: 999998;
+                    background: linear-gradient(135deg, #00e0d0, #008f85);
+                    color: #000;
+                    border: none;
+                    border-radius: 30px;
+                    padding: 12px 20px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    box-shadow: 0 6px 20px rgba(0, 224, 208, 0.5);
+                    align-items: center;
+                    gap: 8px;
+                    transition: all 0.3s ease;
+                }
+                #updateBtnSmart:active {
+                    transform: scale(0.95);
+                }
+                #updateBtnSmart svg {
+                    width: 18px;
+                    height: 18px;
+                    fill: #000;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Create the button
+        if (!document.getElementById('updateBtnSmart')) {
+            var btn = document.createElement('button');
+            btn.id = 'updateBtnSmart';
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Check for Updates';
+            
+            btn.onclick = function() {
+                btn.innerHTML = '⏳ Updating...';
+                btn.disabled = true;
+                // Force a hard reload with a new URL param to bypass cache
+                setTimeout(function() {
+                    var newUrl = window.location.pathname + '?update=' + Date.now();
+                    window.location.href = newUrl;
+                }, 500);
+            };
+            
+            document.body.appendChild(btn);
+        }
+
+        // Show button only on the artist modal (profile section)
+        setInterval(function() {
+            var btn = document.getElementById('updateBtnSmart');
+            if (!btn) return;
+            var artistModal = document.getElementById('artistModal');
+            if (artistModal && artistModal.classList.contains('active')) {
+                btn.style.display = 'flex';
+            } else {
+                btn.style.display = 'none';
+            }
+        }, 500);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initUpdateButton);
+    } else {
+        initUpdateButton();
+    }
+})();
+// END UPDATE BTN
