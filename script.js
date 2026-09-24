@@ -697,55 +697,99 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+
+
+
 // SMART BACK BTN
 (function() {
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inject CSS for the back button
-        var style = document.createElement('style');
-        style.textContent = "#blBackBtn{display:none;position:fixed;bottom:90px;right:15px;z-index:99999;background:rgba(0,0,0,0.88);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:52px;height:52px;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}#blBackBtn:active{transform:scale(0.9);background:rgba(0,224,208,0.35);border-color:#00e0d0;}#blBackBtn svg{width:24px;height:24px;fill:#fff;}#blBackBtn.show{display:flex;}";
-        document.head.appendChild(style);
-
-        var btn = document.createElement('div');
-        btn.id = 'blBackBtn';
-        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>';
-        document.body.appendChild(btn);
-
-        function goBack() {
-            var artistModal = document.getElementById('artistModal');
-            if (artistModal && artistModal.classList.contains('active')) {
-                if (typeof window.closeArtistModal === 'function') { window.closeArtistModal(); return true; }
-                artistModal.classList.remove('active'); return true;
-            }
-            var fullPlayer = document.getElementById('fullPlayer');
-            if (fullPlayer && fullPlayer.classList.contains('active')) {
-                if (typeof window.closeFullPlayer === 'function') { window.closeFullPlayer(); return true; }
-                fullPlayer.classList.remove('active'); return true;
-            }
-            var homeTab = document.getElementById('tab-home');
-            if (homeTab && homeTab.style.display === 'none') {
-                var navItems = document.querySelectorAll('.nav-item');
-                if (navItems.length > 0) { navItems[0].click(); return true; }
-            }
-            return false;
+    function initBackButton() {
+        // Inject CSS directly
+        if (!document.getElementById('backBtnStyle')) {
+            var style = document.createElement('style');
+            style.id = 'backBtnStyle';
+            style.textContent = `
+                #backBtnSmart {
+                    display: flex;
+                    position: fixed;
+                    bottom: 90px;
+                    right: 15px;
+                    z-index: 999999;
+                    background: rgba(0, 0, 0, 0.88);
+                    border: 1px solid rgba(255, 255, 255, 0.25);
+                    border-radius: 50%;
+                    width: 52px;
+                    height: 52px;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    transition: all 0.2s ease;
+                }
+                #backBtnSmart:active {
+                    transform: scale(0.9);
+                    background: rgba(0, 224, 208, 0.35);
+                    border-color: #00e0d0;
+                }
+                #backBtnSmart svg {
+                    width: 24px;
+                    height: 24px;
+                    fill: #fff;
+                }
+            `;
+            document.head.appendChild(style);
         }
 
-        btn.onclick = function(e) { e.preventDefault(); e.stopPropagation(); goBack(); };
+        // Create the button
+        if (!document.getElementById('backBtnSmart')) {
+            var btn = document.createElement('div');
+            btn.id = 'backBtnSmart';
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>';
+            document.body.appendChild(btn);
 
-        setInterval(function() {
-            var artistModal = document.getElementById('artistModal');
-            var fullPlayer = document.getElementById('fullPlayer');
-            var homeTab = document.getElementById('tab-home');
-            var show = false;
-            if (artistModal && artistModal.classList.contains('active')) show = true;
-            else if (fullPlayer && fullPlayer.classList.contains('active')) show = true;
-            else if (homeTab && homeTab.style.display === 'none') show = true;
-            btn.style.display = show ? 'flex' : 'none';
-        }, 300);
+            // Smart back behavior
+            btn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-        history.pushState({p:1}, '', '');
+                // 1. Close artist modal
+                var artistModal = document.getElementById('artistModal');
+                if (artistModal && artistModal.classList.contains('active')) {
+                    if (typeof window.closeArtistModal === 'function') window.closeArtistModal();
+                    else artistModal.classList.remove('active');
+                    return;
+                }
+
+                // 2. Close full player
+                var fullPlayer = document.getElementById('fullPlayer');
+                if (fullPlayer && fullPlayer.classList.contains('active')) {
+                    if (typeof window.closeFullPlayer === 'function') window.closeFullPlayer();
+                    else fullPlayer.classList.remove('active');
+                    return;
+                }
+
+                // 3. Go back to Home tab
+                var navItems = document.querySelectorAll('.nav-item');
+                if (navItems.length > 0) navItems[0].click();
+            };
+        }
+
+        // Intercept hardware back button
+        history.pushState({page: 'app'}, '', '');
         window.addEventListener('popstate', function() {
-            if (goBack()) { history.pushState({p:1}, '', ''); }
+            var backBtn = document.getElementById('backBtnSmart');
+            if (backBtn) {
+                backBtn.click();
+                history.pushState({page: 'app'}, '', '');
+            }
         });
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initBackButton);
+    } else {
+        initBackButton();
+    }
 })();
 // END SMART BACK BTN
