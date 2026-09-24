@@ -827,49 +827,47 @@ document.addEventListener('DOMContentLoaded', function() {
 // END SMART BACK BTN
 
 
+
+
+
 // UPDATE BTN
 (function() {
     function initUpdateButton() {
-        // --- Countdown logic ---
         var now = Date.now();
         var DAY_MS = 24 * 60 * 60 * 1000;
+        var HOUR_MS = 60 * 60 * 1000;
 
         var state = JSON.parse(localStorage.getItem('biUpdateBtnState') || '{}');
-        // state = { day: 'YYYY-MM-DD', showsToday: N, lockUntil: timestamp }
-
         var today = new Date().toISOString().slice(0, 10);
 
-        // If we're in a lock period, hide forever until lock expires
+        // 2-day lockout still active
         if (state.lockUntil && now < state.lockUntil) {
             console.log('[UpdateBtn] Locked until', new Date(state.lockUntil).toLocaleString());
             return;
         }
 
-        // Reset counter if the day has changed
+        // New day → reset counter
         if (state.day !== today) {
             state.day = today;
             state.showsToday = 0;
             state.lockUntil = null;
         }
 
-        // Already hit 3 shows today? Lock for 2 days
+        // 3 shows done today → 2-day lock
         if (state.showsToday >= 3) {
             state.lockUntil = now + (2 * DAY_MS);
             localStorage.setItem('biUpdateBtnState', JSON.stringify(state));
+            console.log('[UpdateBtn] Hit daily limit, locking for 2 days.');
             return;
         }
 
-        // Otherwise, count this show
-        state.showsToday = (state.showsToday || 0) + 1;
-        localStorage.setItem('biUpdateBtnState', JSON.stringify(state));
-
-        // --- Inject CSS ---
+        // --- CSS (only once) ---
         if (!document.getElementById('updateBtnStyle')) {
             var style = document.createElement('style');
             style.id = 'updateBtnStyle';
             style.textContent = `
                 #updateBtnSmart {
-                    display: flex;
+                    display: none;
                     position: fixed;
                     bottom: 150px;
                     right: 15px;
@@ -885,12 +883,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     box-shadow: 0 6px 20px rgba(0, 224, 208, 0.5);
                     align-items: center;
                     gap: 8px;
-                    transition: all 0.3s ease;
+                    transition: opacity 0.5s ease, transform 0.3s ease;
+                    opacity: 0;
+                }
+                #updateBtnSmart.visible {
+                    display: flex;
+                    opacity: 1;
                     animation: pulseUpdate 2s infinite;
                 }
                 @keyframes pulseUpdate {
                     0% { transform: scale(1); }
-                    50% { transform: scale(1.05); }
+                    50% { transform: scale(1.06); }
                     100% { transform: scale(1); }
                 }
                 #updateBtnSmart:active { transform: scale(0.95); }
@@ -899,7 +902,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.head.appendChild(style);
         }
 
-        // --- Create the button ---
+        // --- Create the button (hidden) ---
         if (!document.getElementById('updateBtnSmart')) {
             var btn = document.createElement('button');
             btn.id = 'updateBtnSmart';
@@ -913,30 +916,61 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = window.location.pathname + '?update=' + Date.now();
                 }, 400);
             };
-
-            // Auto-hide after 60 seconds
-            setTimeout(function() {
-                var b = document.getElementById('updateBtnSmart');
-                if (b) {
-                    b.style.opacity = '0';
-                    setTimeout(function() { if (b.parentNode) b.parentNode.removeChild(b); }, 500);
-                }
-            }, 60000);
-
-            // Show only when user is inside the artist profile (per your original design)
-            setInterval(function() {
-                var b = document.getElementById('updateBtnSmart');
-                if (!b) return;
-                var artistModal = document.getElementById('artistModal');
-                if (artistModal && artistModal.classList.contains('active')) {
-                    b.style.display = 'flex';
-                } else {
-                    b.style.display = 'none';
-                }
-            }, 500);
         }
 
-        console.log('[UpdateBtn] Shown ' + state.showsToday + '/3 today.');
+        // --- Random appearance scheduler ---
+        function scheduleNextShow() {
+            // Random delay between 2 and 5 hours
+            var minMs = 2 * HOUR_MS;
+            var maxMs = 5 * HOUR_MS;
+            var delay = minMs + Math.random() * (maxMs - minMs);
+            var delayMinutes = Math.round(delay / 60000);
+
+            console.log('[UpdateBtn] Next appearance in ~' + delayMinutes + ' minutes.');
+
+            setTimeout(function() {
+                // Re-check state just before showing
+                var currentState = JSON.parse(localStorage.getItem('biUpdateBtnState') || '{}');
+                var nowCheck = Date.now();
+                var todayCheck = new Date().toISOString().slice(0, 10);
+
+                if (currentState.lockUntil && nowCheck < currentState.lockUntil) return;
+                if (currentState.day !== todayCheck) {
+                    currentState.day = todayCheck;
+                    currentState.showsToday = 0;
+                    currentState.lockUntil = null;
+                }
+                if (currentState.showsToday >= 3) {
+                    currentState.lockUntil = nowCheck + (2 * DAY_MS);
+                    localStorage.setItem('biUpdateBtnState', JSON.stringify(currentState));
+                    return;
+                }
+
+                // Show the button
+                var btn = document.getElementById('updateBtnSmart');
+                if (btn) {
+                    btn.style.display = 'flex';
+                    btn.classList.add('visible');
+
+                    // Log this show
+                    currentState.showsToday = (currentState.showsToday || 0) + 1;
+                    localStorage.setItem('biUpdateBtnState', JSON.stringify(currentState));
+                    console.log('[UpdateBtn] Shown ' + currentState.showsToday + '/3 today.');
+
+                    // Hide after 60 seconds
+                    setTimeout(function() {
+                        btn.classList.remove('visible');
+                        setTimeout(function() { btn.style.display = 'none'; }, 600);
+                    }, 60000);
+                }
+
+                // Schedule the next random appearance
+                scheduleNextShow();
+            }, delay);
+        }
+
+        // Start the scheduler
+        scheduleNextShow();
     }
 
     if (document.readyState === 'loading') {
