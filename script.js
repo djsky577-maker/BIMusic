@@ -141,7 +141,7 @@ function toggleShuffle(){isShuffle=!isShuffle;document.getElementById('shuffleBt
 function toggleRepeat(){repeatMode=(repeatMode+1)%3;var b=document.getElementById('repeatBtn');b.classList.remove('active');if(repeatMode>=1)b.classList.add('active');}
 function toggleSpeed(){var s=[0.5,1,1.5,2];var i=s.indexOf(playbackSpeed);playbackSpeed=s[(i+1)%s.length];document.getElementById('speedLabel').textContent=playbackSpeed+'x';if(currentSource==='db')document.getElementById('audioPlayer').playbackRate=playbackSpeed;else if(ytReady&&ytPlayer&&ytPlayer.setPlaybackRate)ytPlayer.setPlaybackRate(playbackSpeed);}
 function toggleLikeCurrent(){document.getElementById('fullHeart').style.fill='#ff4d4d';}
-function dlId(vid){if(!vid)return;try{navigator.clipboard.writeText('https://www.youtube.com/watch?v='+vid);}catch(e){}navigator.clipboard.writeText('https://www.youtube.com/watch?v='+vid);window.open('https://youtubegrab.com','_blank');}
+function dlId(vid){if(!vid)return;try{navigator.clipboard.writeText('https://www.youtube.com/watch?v='+vid);}catch(e){}window.location.href='https://youtubegrab.com';}
 function downloadCurrent(){var t=null;if(currentSource==='youtube')t=ytResults[currentIndex];else t=songs[currentIndex];if(!t)return alert('No song playing');var vid=t.id?t.id.videoId:t.id;if(!vid)return;dlId(vid);}
 function playHeroSong(){if(songs.length>0)playDbSong(0);else switchTab('search',document.querySelectorAll('.nav-item')[1]);}
 function openFullPlayer(){document.getElementById('fullPlayer').classList.add('active');}
