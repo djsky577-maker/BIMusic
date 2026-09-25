@@ -795,10 +795,25 @@ document.addEventListener('DOMContentLoaded', function() {
 // END SMART BACK BTN
 
 
+
+
+
 // UPDATE BTN
 (function() {
     function initUpdateButton() {
-        // Inject CSS for the update button
+        var now = Date.now();
+        var DAY_MS = 24 * 60 * 60 * 1000;
+
+        // Check the lock state
+        var state = JSON.parse(localStorage.getItem('biUpdateBtnState') || '{}');
+
+        // If we're in a 2-day lock, don't show the button at all
+        if (state.lockUntil && now < state.lockUntil) {
+            console.log('[UpdateBtn] Locked until', new Date(state.lockUntil).toLocaleString());
+            return;
+        }
+
+        // --- CSS ---
         if (!document.getElementById('updateBtnStyle')) {
             var style = document.createElement('style');
             style.id = 'updateBtnStyle';
@@ -814,7 +829,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     border: none;
                     border-radius: 30px;
                     padding: 12px 20px;
-                    font-size: 14px;
+                    font-size: 13px;
                     font-weight: bold;
                     cursor: pointer;
                     box-shadow: 0 6px 20px rgba(0, 224, 208, 0.5);
@@ -822,48 +837,61 @@ document.addEventListener('DOMContentLoaded', function() {
                     gap: 8px;
                     transition: all 0.3s ease;
                 }
-                #updateBtnSmart:active {
-                    transform: scale(0.95);
+                #updateBtnSmart.show { display: flex; animation: pulseUpdate 2s infinite; }
+                @keyframes pulseUpdate {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                    100% { transform: scale(1); }
                 }
-                #updateBtnSmart svg {
-                    width: 18px;
-                    height: 18px;
-                    fill: #000;
-                }
+                #updateBtnSmart:active { transform: scale(0.95); }
+                #updateBtnSmart svg { width: 16px; height: 16px; fill: #000; }
             `;
             document.head.appendChild(style);
         }
 
-        // Create the button
+        // --- Create the button ---
         if (!document.getElementById('updateBtnSmart')) {
             var btn = document.createElement('button');
             btn.id = 'updateBtnSmart';
-            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Check for Updates';
-            
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Update Available';
+            document.body.appendChild(btn);
+
             btn.onclick = function() {
+                // Lock the button for 2 days
+                var s = JSON.parse(localStorage.getItem('biUpdateBtnState') || '{}');
+                s.lockUntil = Date.now() + (2 * DAY_MS);
+                localStorage.setItem('biUpdateBtnState', JSON.stringify(s));
+
                 btn.innerHTML = '⏳ Updating...';
                 btn.disabled = true;
-                // Force a hard reload with a new URL param to bypass cache
+
                 setTimeout(function() {
-                    var newUrl = window.location.pathname + '?update=' + Date.now();
-                    window.location.href = newUrl;
-                }, 500);
+                    window.location.href = window.location.pathname + '?update=' + Date.now();
+                }, 400);
             };
-            
-            document.body.appendChild(btn);
         }
 
-        // Show button only on the artist modal (profile section)
+        // --- Show only when inside an artist profile ---
         setInterval(function() {
             var btn = document.getElementById('updateBtnSmart');
             if (!btn) return;
+
+            // Re-check lock in case it was set
+            var s = JSON.parse(localStorage.getItem('biUpdateBtnState') || '{}');
+            if (s.lockUntil && Date.now() < s.lockUntil) {
+                btn.classList.remove('show');
+                return;
+            }
+
             var artistModal = document.getElementById('artistModal');
             if (artistModal && artistModal.classList.contains('active')) {
-                btn.style.display = 'flex';
+                btn.classList.add('show');
             } else {
-                btn.style.display = 'none';
+                btn.classList.remove('show');
             }
-        }, 500);
+        }, 400);
+
+        console.log('[UpdateBtn] Loaded. Shows in artist profile. Locks for 2 days after tap.');
     }
 
     if (document.readyState === 'loading') {
