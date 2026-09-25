@@ -1349,19 +1349,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 row.onclick = function() {
                     closeLyrics();
-                    // Play this video in the app
-                    window.playQueue = items.map(function(x) {
+                    var vid = (v.url || '').replace('/watch?v=', '');
+                    // Build a proper queue
+                    var newQueue = items.map(function(x) {
                         return {
                             id: { videoId: (x.url || '').replace('/watch?v=', '') },
                             snippet: {
                                 title: x.title,
                                 channelTitle: x.uploaderName || '',
-                                thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                                thumbnails: { 
+                                    default: { url: x.thumbnail }, 
+                                    high: { url: x.thumbnail } 
+                                }
                             }
                         };
                     });
-                    window.ytResults = window.playQueue;
-                    if (typeof window.playYoutube === 'function') window.playYoutube(idx);
+                    window.ytResults = newQueue;
+                    window.playQueue = newQueue;
+                    // Find the index of this video in the queue
+                    var playIdx = newQueue.findIndex(function(t) { return t.id.videoId === vid; });
+                    if (playIdx < 0) playIdx = 0;
+                    // Play it
+                    if (typeof window.playYoutube === 'function') {
+                        window.playYoutube(playIdx);
+                    }
                 };
                 body.appendChild(row);
             });
