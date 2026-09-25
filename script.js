@@ -1084,7 +1084,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // LYRICS FEATURE
 (function() {
     // Where the panel begins (the red line). Adjust this value if you need to move it.
-    var PANEL_TOP_OFFSET = 70; // px below the controls
+    var PANEL_TOP_OFFSET = 380; // px below the top of screen (stops above the repeat/download row)
 
     function injectStyle() {
         if (document.getElementById('lyricsStyleV2')) return;
@@ -1094,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', function() {
             /* Floating lyrics button (left, bottom) */
             #lyricsBtnV2 {
                 position: fixed;
-                bottom: 90px;
+                bottom: 155px;
                 left: 15px;
                 z-index: 999997;
                 background: rgba(0, 224, 208, 0.15);
