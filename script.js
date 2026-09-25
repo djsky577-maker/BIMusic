@@ -1084,16 +1084,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+
+
+
 // LYRICS FEATURE
 (function() {
     var PANEL_TOP_OFFSET = 380;
 
     function injectStyle() {
-        if (document.getElementById('lyricsStyleV3')) return;
+        if (document.getElementById('lyricsStyleV6')) return;
         var style = document.createElement('style');
-        style.id = 'lyricsStyleV3';
+        style.id = 'lyricsStyleV6';
         style.textContent = `
-            #lyricsBtnV3 {
+            #lyricsBtnV6 {
                 position: fixed;
                 bottom: 155px;
                 right: 15px;
@@ -1112,18 +1115,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 box-shadow: 0 4px 18px rgba(0,0,0,0.7), 0 0 20px rgba(0,224,208,0.3);
                 transition: all 0.2s ease;
             }
-            #lyricsBtnV3:active { transform: scale(0.9); background: rgba(0,224,208,0.4); }
-            #lyricsBtnV3 svg { width: 26px; height: 26px; fill: #00e0d0; }
-            #lyricsBtnV3.show { display: flex; }
+            #lyricsBtnV6:active { transform: scale(0.9); background: rgba(0,224,208,0.4); }
+            #lyricsBtnV6 svg { width: 26px; height: 26px; fill: #00e0d0; }
+            #lyricsBtnV6.show { display: flex; }
 
-            #lyricsPanelV3 {
+            #lyricsPanelV6 {
                 position: fixed;
                 left: 0; right: 0; bottom: 0;
                 top: ${PANEL_TOP_OFFSET}px;
                 z-index: 9999996;
                 display: none;
                 flex-direction: column;
-                background: rgba(0, 0, 0, 0.55);
+                background: rgba(0, 0, 0, 0.7);
                 backdrop-filter: blur(30px) saturate(180%);
                 -webkit-backdrop-filter: blur(30px) saturate(180%);
                 border-top: 1px solid rgba(0, 224, 208, 0.45);
@@ -1133,27 +1136,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 transition: opacity 0.35s ease, transform 0.35s ease;
                 overflow: hidden;
             }
-            #lyricsPanelV3.show { display: flex; opacity: 1; transform: translateY(0); }
+            #lyricsPanelV6.show { display: flex; opacity: 1; transform: translateY(0); }
 
-            #lyricsPanelV3::before {
-                content: '';
-                position: absolute;
-                top: 0; left: 0; right: 0;
-                height: 70px;
-                background: linear-gradient(to bottom, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.6) 60%, transparent 100%);
-                pointer-events: none;
-                z-index: 2;
-            }
-
-            #lyricsHeaderV3 {
+            #lyricsHeaderV6 {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 14px 20px 10px 20px;
+                padding: 14px 20px 12px 20px;
                 z-index: 3;
                 position: relative;
             }
-            #lyricsTitleV3 {
+            #lyricsTitleV6 {
                 color: #00e0d0;
                 font-size: 13px;
                 font-weight: bold;
@@ -1166,7 +1159,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 flex: 1;
                 margin-right: 10px;
             }
-            #lyricsCloseV3 {
+            #lyricsCloseV6 {
                 width: 34px; height: 34px;
                 border-radius: 50%;
                 background: rgba(0,0,0,0.5);
@@ -1177,58 +1170,94 @@ document.addEventListener('DOMContentLoaded', function() {
                 cursor: pointer;
                 flex-shrink: 0;
             }
-            #lyricsCloseV3:active { background: rgba(0,224,208,0.35); }
+            #lyricsCloseV6:active { background: rgba(0,224,208,0.35); }
 
-            #lyricsScrollV3 {
+            #lyricsBodyV6 {
                 flex: 1;
                 overflow-y: auto;
-                padding: 100px 24px 100px 24px;
-                box-sizing: border-box;
-                scroll-behavior: smooth;
+                padding: 8px 16px 20px 16px;
                 -webkit-overflow-scrolling: touch;
-                position: relative;
-                z-index: 1;
+            }
+            #lyricsBodyV6::-webkit-scrollbar { display: none; }
+
+            .ly-video-row {
                 display: flex;
-                flex-direction: column-reverse;
+                align-items: center;
+                gap: 10px;
+                padding: 8px;
+                margin-bottom: 8px;
+                background: rgba(20, 20, 20, 0.7);
+                border: 1px solid rgba(0, 224, 208, 0.15);
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.2s ease;
             }
-            #lyricsScrollV3::-webkit-scrollbar { display: none; }
-            #lyricsScrollV3 p {
-                color: rgba(230, 230, 230, 0.4);
-                font-size: 19px;
-                line-height: 1.7;
-                font-weight: 600;
-                text-align: center;
-                margin: 14px 0;
-                transition: color 0.5s ease, transform 0.5s ease, opacity 0.5s ease;
-                opacity: 0.4;
+            .ly-video-row:active {
+                background: rgba(0, 224, 208, 0.2);
+                border-color: #00e0d0;
+                transform: scale(0.98);
             }
-            #lyricsScrollV3 p.active {
-                color: #00e0d0;
-                font-size: 22px;
-                text-shadow: 0 0 25px rgba(0, 224, 208, 0.8);
-                transform: scale(1.05);
-                opacity: 1;
+            .ly-video-row img {
+                width: 80px;
+                height: 60px;
+                border-radius: 6px;
+                object-fit: cover;
+                flex-shrink: 0;
             }
-            #lyricsScrollV3 p.past {
-                opacity: 0.15;
-                transform: scale(0.95);
+            .ly-video-info {
+                flex: 1;
+                overflow: hidden;
             }
-            #lyricsScrollV3 .msg {
+            .ly-video-title {
+                font-size: 12px;
+                color: #fff;
+                font-weight: bold;
+                line-height: 1.3;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            }
+            .ly-video-channel {
+                font-size: 10px;
+                color: #888;
+                margin-top: 3px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .ly-video-row .ly-play-icon {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                background: #00e0d0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .ly-video-row .ly-play-icon svg {
+                width: 14px;
+                height: 14px;
+                fill: #000;
+                margin-left: 1px;
+            }
+            #lyricsBodyV6 .ly-msg {
                 color: #aaa;
                 font-style: italic;
-                font-size: 15px;
-                font-weight: normal;
-                padding: 40px 0;
-                opacity: 1;
+                font-size: 14px;
+                text-align: center;
+                padding: 40px 20px;
             }
         `;
         document.head.appendChild(style);
     }
 
     function injectElements() {
-        if (!document.getElementById('lyricsBtnV3')) {
+        if (!document.getElementById('lyricsBtnV6')) {
             var btn = document.createElement('div');
-            btn.id = 'lyricsBtnV3';
+            btn.id = 'lyricsBtnV6';
             btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg>';
             document.body.appendChild(btn);
             btn.onclick = function(e) {
@@ -1236,20 +1265,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 openLyrics();
             };
         }
-        if (!document.getElementById('lyricsPanelV3')) {
+        if (!document.getElementById('lyricsPanelV6')) {
             var panel = document.createElement('div');
-            panel.id = 'lyricsPanelV3';
+            panel.id = 'lyricsPanelV6';
             panel.innerHTML = `
-                <div id="lyricsHeaderV3">
-                    <div id="lyricsTitleV3">Lyrics</div>
-                    <div id="lyricsCloseV3">✕</div>
+                <div id="lyricsHeaderV6">
+                    <div id="lyricsTitleV6">Lyrics Videos</div>
+                    <div id="lyricsCloseV6">✕</div>
                 </div>
-                <div id="lyricsScrollV3">
-                    <p class="msg">Tap a song to load lyrics 🎧</p>
+                <div id="lyricsBodyV6">
+                    <div class="ly-msg">Loading lyric videos...</div>
                 </div>
             `;
             document.body.appendChild(panel);
-            document.getElementById('lyricsCloseV3').onclick = function(e) {
+            document.getElementById('lyricsCloseV6').onclick = function(e) {
                 e.stopPropagation();
                 closeLyrics();
             };
@@ -1257,18 +1286,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function openLyrics() {
-        var panel = document.getElementById('lyricsPanelV3');
+        var panel = document.getElementById('lyricsPanelV6');
         if (!panel) return;
         panel.classList.add('show');
-        loadLyrics();
+        searchLyricVideos();
     }
     function closeLyrics() {
-        var panel = document.getElementById('lyricsPanelV3');
+        var panel = document.getElementById('lyricsPanelV6');
         if (panel) panel.classList.remove('show');
-        if (window._lyricsTimer) { clearInterval(window._lyricsTimer); window._lyricsTimer = null; }
     }
 
-    function loadLyrics() {
+    async function searchLyricVideos() {
+        var body = document.getElementById('lyricsBodyV6');
+        var titleEl = document.getElementById('lyricsTitleV6');
+
+        // Get current song
         var title = '', artist = '';
         if (window.currentSource === 'youtube' && window.ytResults && window.ytResults[window.currentIndex]) {
             title = window.ytResults[window.currentIndex].snippet.title || '';
@@ -1278,88 +1310,64 @@ document.addEventListener('DOMContentLoaded', function() {
             artist = window.songs[window.currentIndex].artist_name || '';
         }
 
-        var scroll = document.getElementById('lyricsScrollV3');
         if (!title) {
-            scroll.innerHTML = '<p class="msg">Play a song first 🎧</p>';
+            body.innerHTML = '<div class="ly-msg">Play a song first to find lyric videos 🎧</div>';
             return;
         }
-        document.getElementById('lyricsTitleV3').textContent = title.substring(0, 40);
 
-        var cleanTitle = title.replace(/official|video|lyrics|audio|music|hd|4k|ft\.|feat\.|\(.*?\)|\[.*?\]/gi, '').trim();
+        titleEl.textContent = 'LYRIC VIDEOS';
+
+        // Clean the title
+        var cleanTitle = title.replace(/official|video|lyrics|lyric|audio|music|hd|4k|ft\.|feat\.|\(.*?\)|\[.*?\]/gi, '').trim();
         var cleanArtist = (artist || '').replace(/vevo|topic|official|- topic/gi, '').trim();
 
-        scroll.innerHTML = '<p class="msg">🔍 Searching for lyrics...</p>';
+        var query = (cleanArtist ? cleanArtist + ' ' : '') + cleanTitle + ' lyrics';
 
-        // Try lyrics.ovh with artist first
-        var url1 = 'https://api.lyrics.ovh/v1/' + encodeURIComponent(cleanArtist || 'unknown') + '/' + encodeURIComponent(cleanTitle);
+        body.innerHTML = '<div class="ly-msg">🔍 Searching for lyric videos...</div>';
 
-        fetch(url1)
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data && data.lyrics && data.lyrics.length > 10) {
-                    renderLyrics(data.lyrics);
-                } else {
-                    // Try again with just title as artist
-                    var url2 = 'https://api.lyrics.ovh/v1/' + encodeURIComponent(cleanTitle) + '/' + encodeURIComponent(cleanTitle);
-                    return fetch(url2)
-                        .then(function(r) { return r.json(); })
-                        .then(function(d2) {
-                            if (d2 && d2.lyrics && d2.lyrics.length > 10) renderLyrics(d2.lyrics);
-                            else scroll.innerHTML = '<p class="msg">🎵 No lyrics found for this song.<br><br>Try a more popular track.</p>';
-                        });
-                }
-            })
-            .catch(function() {
-                // Fallback API attempt
-                scroll.innerHTML = '<p class="msg">🎵 Could not load lyrics. Check your internet and try again.</p>';
+        try {
+            var d = await window.pget('/search?q=' + encodeURIComponent(query) + '&filter=videos');
+            var items = (d.items || []).filter(function(v) { return v.url && v.title; }).slice(0, 20);
+
+            if (items.length === 0) {
+                body.innerHTML = '<div class="ly-msg">😕 No lyric videos found for this song.</div>';
+                return;
+            }
+
+            body.innerHTML = '';
+            items.forEach(function(v, idx) {
+                var vid = (v.url || '').replace('/watch?v=', '');
+                var row = document.createElement('div');
+                row.className = 'ly-video-row';
+                row.innerHTML = `
+                    <img src="${v.thumbnail || ''}" onerror="this.style.display='none'">
+                    <div class="ly-video-info">
+                        <div class="ly-video-title">${v.title.replace(/</g, '&lt;')}</div>
+                        <div class="ly-video-channel">${(v.uploaderName || 'Unknown').replace(/</g, '&lt;')}</div>
+                    </div>
+                    <div class="ly-play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                `;
+                row.onclick = function() {
+                    closeLyrics();
+                    // Play this video in the app
+                    window.playQueue = items.map(function(x) {
+                        return {
+                            id: { videoId: (x.url || '').replace('/watch?v=', '') },
+                            snippet: {
+                                title: x.title,
+                                channelTitle: x.uploaderName || '',
+                                thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                            }
+                        };
+                    });
+                    window.ytResults = window.playQueue;
+                    if (typeof window.playYoutube === 'function') window.playYoutube(idx);
+                };
+                body.appendChild(row);
             });
-    }
-
-    function renderLyrics(rawLyrics) {
-        var scroll = document.getElementById('lyricsScrollV3');
-        var lines = rawLyrics.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
-
-        // Build the HTML - we use flex-direction: column-reverse so newest at bottom
-        // We want lyrics to scroll UP, so we'll reverse the display order
-        var html = '';
-        for (var i = 0; i < lines.length; i++) {
-            html += '<p data-line="' + i + '">' + lines[i].replace(/</g, '&lt;') + '</p>';
+        } catch(err) {
+            body.innerHTML = '<div class="ly-msg">⚠️ Could not load lyric videos. Check your internet.</div>';
         }
-        scroll.innerHTML = html;
-        scroll.scrollTop = scroll.scrollHeight;
-
-        // Start karaoke animation
-        startKaraoke(scroll);
-    }
-
-    function startKaraoke(scroll) {
-        if (window._lyricsTimer) clearInterval(window._lyricsTimer);
-        var lines = scroll.querySelectorAll('p');
-        if (lines.length === 0) return;
-        var i = 0;
-        window._lyricsTimer = setInterval(function() {
-            var panel = document.getElementById('lyricsPanelV3');
-            if (!panel || !panel.classList.contains('show')) {
-                clearInterval(window._lyricsTimer);
-                return;
-            }
-            if (i >= lines.length) {
-                clearInterval(window._lyricsTimer);
-                return;
-            }
-            // Mark previous lines as past
-            lines.forEach(function(p) { p.classList.remove('active'); });
-            for (var j = 0; j < i; j++) { lines[j].classList.add('past'); }
-
-            // Activate current line
-            lines[i].classList.add('active');
-
-            // Scroll smoothly so current line moves toward top
-            var target = lines[i].offsetTop - 100;
-            scroll.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
-
-            i++;
-        }, 3500);
     }
 
     function init() {
@@ -1367,7 +1375,7 @@ document.addEventListener('DOMContentLoaded', function() {
         injectElements();
 
         setInterval(function() {
-            var btn = document.getElementById('lyricsBtnV3');
+            var btn = document.getElementById('lyricsBtnV6');
             if (!btn) return;
             var fp = document.getElementById('fullPlayer');
             if (fp && fp.classList.contains('active')) btn.classList.add('show');
