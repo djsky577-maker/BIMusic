@@ -141,7 +141,7 @@ function toggleShuffle(){isShuffle=!isShuffle;document.getElementById('shuffleBt
 function toggleRepeat(){repeatMode=(repeatMode+1)%3;var b=document.getElementById('repeatBtn');b.classList.remove('active');if(repeatMode>=1)b.classList.add('active');}
 function toggleSpeed(){var s=[0.5,1,1.5,2];var i=s.indexOf(playbackSpeed);playbackSpeed=s[(i+1)%s.length];document.getElementById('speedLabel').textContent=playbackSpeed+'x';if(currentSource==='db')document.getElementById('audioPlayer').playbackRate=playbackSpeed;else if(ytReady&&ytPlayer&&ytPlayer.setPlaybackRate)ytPlayer.setPlaybackRate(playbackSpeed);}
 function toggleLikeCurrent(){document.getElementById('fullHeart').style.fill='#ff4d4d';}
-function dlId(vid){if(!vid)return;try{navigator.clipboard.writeText('https://www.youtube.com/watch?v='+vid);}catch(e){}window.location.href='https://youtubegrab.com';}catch(e){}navigator.clipboard.writeText('https://www.youtube.com/watch?v='+vid);window.open('https://youtubegrab.com','_blank');}
+function dlId(vid){if(!vid)return;try{navigator.clipboard.writeText('https://www.youtube.com/watch?v='+vid);}catch(e){}navigator.clipboard.writeText('https://www.youtube.com/watch?v='+vid);window.open('https://youtubegrab.com','_blank');}
 function downloadCurrent(){var t=null;if(currentSource==='youtube')t=ytResults[currentIndex];else t=songs[currentIndex];if(!t)return alert('No song playing');var vid=t.id?t.id.videoId:t.id;if(!vid)return;dlId(vid);}
 function playHeroSong(){if(songs.length>0)playDbSong(0);else switchTab('search',document.querySelectorAll('.nav-item')[1]);}
 function openFullPlayer(){document.getElementById('fullPlayer').classList.add('active');}
@@ -700,121 +700,89 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-
-
-
-
-
-
 // SMART BACK BTN
 (function() {
-    var historyStack = [];
-    var isNavigatingBack = false;
-
-    function getCurrentView() {
-        // Returns a string ID for the current screen
-        var artistModal = document.getElementById('artistModal');
-        if (artistModal && artistModal.classList.contains('active')) {
-            return { view: 'artist', id: window.currentArtist ? window.currentArtist.name : null };
-        }
-        var fullPlayer = document.getElementById('fullPlayer');
-        if (fullPlayer && fullPlayer.classList.contains('active')) {
-            return { view: 'fullPlayer' };
-        }
-        // Determine current tab
-        var navItems = document.querySelectorAll('.nav-item');
-        for (var i = 0; i < navItems.length; i++) {
-            if (navItems[i].classList.contains('active') || navItems[i].style.color === 'rgb(0, 224, 208)') {
-                return { view: 'tab', id: i };
-            }
-        }
-        // Default: home tab
-        var homeTab = document.getElementById('tab-home');
-        if (homeTab && homeTab.style.display !== 'none') return { view: 'tab', id: 0 };
-        return { view: 'unknown' };
-    }
-
-    function pushHistory() {
-        if (isNavigatingBack) return;
-        var current = getCurrentView();
-        var last = historyStack[historyStack.length - 1];
-        // Only push if it's different from the last entry
-        if (!last || last.view !== current.view || last.id !== current.id) {
-            historyStack.push(current);
-            if (historyStack.length > 30) historyStack.shift(); // cap the stack
-        }
-    }
-
-    function goBack() {
-        if (historyStack.length < 2) {
-            // Nothing to go back to — go home
-            var navItems = document.querySelectorAll('.nav-item');
-            if (navItems.length > 0) navItems[0].click();
-            return;
-        }
-        isNavigatingBack = true;
-        historyStack.pop(); // Remove current
-        var prev = historyStack[historyStack.length - 1];
-
-        if (prev.view === 'artist') {
-            // Close full player if open
-            var fp = document.getElementById('fullPlayer');
-            if (fp && fp.classList.contains('active')) fp.classList.remove('active');
-            // Open artist modal
-            if (typeof window.openArtistProfile === 'function' && window.currentArtist) {
-                // Artist is already shown, just make sure modal is active
-                var am = document.getElementById('artistModal');
-                if (am) am.classList.add('active');
-            }
-        } else if (prev.view === 'fullPlayer') {
-            // Close artist modal if open
-            var am = document.getElementById('artistModal');
-            if (am && am.classList.contains('active')) am.classList.remove('active');
-            // Open full player
-            if (typeof window.openFullPlayer === 'function') window.openFullPlayer();
-        } else if (prev.view === 'tab') {
-            // Close modals
-            var am2 = document.getElementById('artistModal');
-            if (am2 && am2.classList.contains('active')) am2.classList.remove('active');
-            var fp2 = document.getElementById('fullPlayer');
-            if (fp2 && fp2.classList.contains('active')) fp2.classList.remove('active');
-            // Switch to the previous tab
-            var navItems = document.querySelectorAll('.nav-item');
-            if (navItems[prev.id]) navItems[prev.id].click();
-        }
-
-        setTimeout(function() { isNavigatingBack = false; }, 300);
-    }
-
     function initBackButton() {
-        // Inject CSS
+        // Inject CSS directly
         if (!document.getElementById('backBtnStyle')) {
             var style = document.createElement('style');
             style.id = 'backBtnStyle';
-            style.textContent = "#backBtnSmart{display:flex;position:fixed;bottom:90px;right:15px;z-index:999999;background:rgba(0,0,0,0.88);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:52px;height:52px;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:all 0.2s ease;}#backBtnSmart:active{transform:scale(0.9);background:rgba(0,224,208,0.35);border-color:#00e0d0;}#backBtnSmart svg{width:24px;height:24px;fill:#fff;}";
+            style.textContent = `
+                #backBtnSmart {
+                    display: flex;
+                    position: fixed;
+                    bottom: 90px;
+                    right: 15px;
+                    z-index: 999999;
+                    background: rgba(0, 0, 0, 0.88);
+                    border: 1px solid rgba(255, 255, 255, 0.25);
+                    border-radius: 50%;
+                    width: 52px;
+                    height: 52px;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    transition: all 0.2s ease;
+                }
+                #backBtnSmart:active {
+                    transform: scale(0.9);
+                    background: rgba(0, 224, 208, 0.35);
+                    border-color: #00e0d0;
+                }
+                #backBtnSmart svg {
+                    width: 24px;
+                    height: 24px;
+                    fill: #fff;
+                }
+            `;
             document.head.appendChild(style);
         }
 
-        // Create button
+        // Create the button
         if (!document.getElementById('backBtnSmart')) {
             var btn = document.createElement('div');
             btn.id = 'backBtnSmart';
             btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>';
             document.body.appendChild(btn);
 
-            btn.onclick = function(e) { e.preventDefault(); e.stopPropagation(); goBack(); };
-        }
+            // Smart back behavior
+            btn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-        // Watch for screen changes every 300ms
-        setInterval(function() {
-            pushHistory();
-        }, 300);
+                // 1. Close artist modal
+                var artistModal = document.getElementById('artistModal');
+                if (artistModal && artistModal.classList.contains('active')) {
+                    if (typeof window.closeArtistModal === 'function') window.closeArtistModal();
+                    else artistModal.classList.remove('active');
+                    return;
+                }
+
+                // 2. Close full player
+                var fullPlayer = document.getElementById('fullPlayer');
+                if (fullPlayer && fullPlayer.classList.contains('active')) {
+                    if (typeof window.closeFullPlayer === 'function') window.closeFullPlayer();
+                    else fullPlayer.classList.remove('active');
+                    return;
+                }
+
+                // 3. Go back to Home tab
+                var navItems = document.querySelectorAll('.nav-item');
+                if (navItems.length > 0) navItems[0].click();
+            };
+        }
 
         // Intercept hardware back button
         history.pushState({page: 'app'}, '', '');
         window.addEventListener('popstate', function() {
-            goBack();
-            history.pushState({page: 'app'}, '', '');
+            var backBtn = document.getElementById('backBtnSmart');
+            if (backBtn) {
+                backBtn.click();
+                history.pushState({page: 'app'}, '', '');
+            }
         });
     }
 
@@ -827,41 +795,10 @@ document.addEventListener('DOMContentLoaded', function() {
 // END SMART BACK BTN
 
 
-
-
-
 // UPDATE BTN
 (function() {
     function initUpdateButton() {
-        var now = Date.now();
-        var DAY_MS = 24 * 60 * 60 * 1000;
-        var HOUR_MS = 60 * 60 * 1000;
-
-        var state = JSON.parse(localStorage.getItem('biUpdateBtnState') || '{}');
-        var today = new Date().toISOString().slice(0, 10);
-
-        // 2-day lockout still active
-        if (state.lockUntil && now < state.lockUntil) {
-            console.log('[UpdateBtn] Locked until', new Date(state.lockUntil).toLocaleString());
-            return;
-        }
-
-        // New day → reset counter
-        if (state.day !== today) {
-            state.day = today;
-            state.showsToday = 0;
-            state.lockUntil = null;
-        }
-
-        // 3 shows done today → 2-day lock
-        if (state.showsToday >= 3) {
-            state.lockUntil = now + (2 * DAY_MS);
-            localStorage.setItem('biUpdateBtnState', JSON.stringify(state));
-            console.log('[UpdateBtn] Hit daily limit, locking for 2 days.');
-            return;
-        }
-
-        // --- CSS (only once) ---
+        // Inject CSS for the update button
         if (!document.getElementById('updateBtnStyle')) {
             var style = document.createElement('style');
             style.id = 'updateBtnStyle';
@@ -877,100 +814,56 @@ document.addEventListener('DOMContentLoaded', function() {
                     border: none;
                     border-radius: 30px;
                     padding: 12px 20px;
-                    font-size: 13px;
+                    font-size: 14px;
                     font-weight: bold;
                     cursor: pointer;
                     box-shadow: 0 6px 20px rgba(0, 224, 208, 0.5);
                     align-items: center;
                     gap: 8px;
-                    transition: opacity 0.5s ease, transform 0.3s ease;
-                    opacity: 0;
+                    transition: all 0.3s ease;
                 }
-                #updateBtnSmart.visible {
-                    display: flex;
-                    opacity: 1;
-                    animation: pulseUpdate 2s infinite;
+                #updateBtnSmart:active {
+                    transform: scale(0.95);
                 }
-                @keyframes pulseUpdate {
-                    0% { transform: scale(1); }
-                    50% { transform: scale(1.06); }
-                    100% { transform: scale(1); }
+                #updateBtnSmart svg {
+                    width: 18px;
+                    height: 18px;
+                    fill: #000;
                 }
-                #updateBtnSmart:active { transform: scale(0.95); }
-                #updateBtnSmart svg { width: 16px; height: 16px; fill: #000; }
             `;
             document.head.appendChild(style);
         }
 
-        // --- Create the button (hidden) ---
+        // Create the button
         if (!document.getElementById('updateBtnSmart')) {
             var btn = document.createElement('button');
             btn.id = 'updateBtnSmart';
-            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Update Available';
-            document.body.appendChild(btn);
-
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Check for Updates';
+            
             btn.onclick = function() {
                 btn.innerHTML = '⏳ Updating...';
                 btn.disabled = true;
+                // Force a hard reload with a new URL param to bypass cache
                 setTimeout(function() {
-                    window.location.href = window.location.pathname + '?update=' + Date.now();
-                }, 400);
+                    var newUrl = window.location.pathname + '?update=' + Date.now();
+                    window.location.href = newUrl;
+                }, 500);
             };
+            
+            document.body.appendChild(btn);
         }
 
-        // --- Random appearance scheduler ---
-        function scheduleNextShow() {
-            // Random delay between 2 and 5 hours
-            var minMs = 2 * HOUR_MS;
-            var maxMs = 5 * HOUR_MS;
-            var delay = minMs + Math.random() * (maxMs - minMs);
-            var delayMinutes = Math.round(delay / 60000);
-
-            console.log('[UpdateBtn] Next appearance in ~' + delayMinutes + ' minutes.');
-
-            setTimeout(function() {
-                // Re-check state just before showing
-                var currentState = JSON.parse(localStorage.getItem('biUpdateBtnState') || '{}');
-                var nowCheck = Date.now();
-                var todayCheck = new Date().toISOString().slice(0, 10);
-
-                if (currentState.lockUntil && nowCheck < currentState.lockUntil) return;
-                if (currentState.day !== todayCheck) {
-                    currentState.day = todayCheck;
-                    currentState.showsToday = 0;
-                    currentState.lockUntil = null;
-                }
-                if (currentState.showsToday >= 3) {
-                    currentState.lockUntil = nowCheck + (2 * DAY_MS);
-                    localStorage.setItem('biUpdateBtnState', JSON.stringify(currentState));
-                    return;
-                }
-
-                // Show the button
-                var btn = document.getElementById('updateBtnSmart');
-                if (btn) {
-                    btn.style.display = 'flex';
-                    btn.classList.add('visible');
-
-                    // Log this show
-                    currentState.showsToday = (currentState.showsToday || 0) + 1;
-                    localStorage.setItem('biUpdateBtnState', JSON.stringify(currentState));
-                    console.log('[UpdateBtn] Shown ' + currentState.showsToday + '/3 today.');
-
-                    // Hide after 60 seconds
-                    setTimeout(function() {
-                        btn.classList.remove('visible');
-                        setTimeout(function() { btn.style.display = 'none'; }, 600);
-                    }, 60000);
-                }
-
-                // Schedule the next random appearance
-                scheduleNextShow();
-            }, delay);
-        }
-
-        // Start the scheduler
-        scheduleNextShow();
+        // Show button only on the artist modal (profile section)
+        setInterval(function() {
+            var btn = document.getElementById('updateBtnSmart');
+            if (!btn) return;
+            var artistModal = document.getElementById('artistModal');
+            if (artistModal && artistModal.classList.contains('active')) {
+                btn.style.display = 'flex';
+            } else {
+                btn.style.display = 'none';
+            }
+        }, 500);
     }
 
     if (document.readyState === 'loading') {
