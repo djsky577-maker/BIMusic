@@ -1095,7 +1095,7 @@ document.addEventListener('DOMContentLoaded', function() {
             #lyricsBtnV2 {
                 position: fixed;
                 bottom: 155px;
-                left: 15px;
+                right: 15px;
                 z-index: 999997;
                 background: rgba(0, 224, 208, 0.15);
                 backdrop-filter: blur(15px);
