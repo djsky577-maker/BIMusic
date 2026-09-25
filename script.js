@@ -1078,244 +1078,207 @@ document.addEventListener('DOMContentLoaded', function() {
 // END WELCOME NOTE
 
 
+
+
+
 // LYRICS FEATURE
 (function() {
-    function initLyrics() {
-        // Inject CSS
-        if (!document.getElementById('lyricsStyle')) {
-            var style = document.createElement('style');
-            style.id = 'lyricsStyle';
-            style.textContent = `
-                #lyricsBtn {
-                    position: fixed;
-                    bottom: 90px;
-                    left: 15px;
-                    z-index: 999997;
-                    background: rgba(0, 224, 208, 0.15);
-                    backdrop-filter: blur(15px);
-                    -webkit-backdrop-filter: blur(15px);
-                    border: 1px solid rgba(0, 224, 208, 0.5);
-                    border-radius: 50%;
-                    width: 52px;
-                    height: 52px;
-                    display: none;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 224, 208, 0.3);
-                    transition: all 0.2s ease;
-                }
-                #lyricsBtn:active {
-                    transform: scale(0.9);
-                    background: rgba(0, 224, 208, 0.4);
-                }
-                #lyricsBtn svg {
-                    width: 26px;
-                    height: 26px;
-                    fill: #00e0d0;
-                }
-                #lyricsBtn.show { display: flex; }
+    // Where the panel begins (the red line). Adjust this value if you need to move it.
+    var PANEL_TOP_OFFSET = 70; // px below the controls
 
-                #lyricsOverlay {
-                    display: none;
-                    position: fixed;
-                    top: 0; left: 0;
-                    width: 100vw; height: 100vh;
-                    z-index: 9999998;
-                    background: rgba(0, 0, 0, 0.6);
-                    backdrop-filter: blur(25px);
-                    -webkit-backdrop-filter: blur(25px);
-                    opacity: 0;
-                    transition: opacity 0.4s ease;
-                    align-items: flex-end;
-                }
-                #lyricsOverlay.show {
-                    display: flex;
-                    opacity: 1;
-                }
-                #lyricsPanel {
-                    width: 100%;
-                    max-height: 75vh;
-                    background: linear-gradient(135deg, rgba(0, 224, 208, 0.15), rgba(0, 143, 133, 0.08));
-                    backdrop-filter: blur(40px);
-                    -webkit-backdrop-filter: blur(40px);
-                    border-top: 1px solid rgba(0, 224, 208, 0.5);
-                    border-radius: 28px 28px 0 0;
-                    box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 224, 208, 0.2);
-                    padding: 12px 20px 30px;
-                    box-sizing: border-box;
-                    transform: translateY(100%);
-                    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-                    display: flex;
-                    flex-direction: column;
-                }
-                #lyricsOverlay.show #lyricsPanel {
-                    transform: translateY(0);
-                }
-                .lyrics-handle {
-                    width: 40px; height: 4px;
-                    background: rgba(255, 255, 255, 0.3);
-                    border-radius: 2px;
-                    margin: 0 auto 15px auto;
-                }
-                .lyrics-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 15px;
-                }
-                .lyrics-title {
-                    font-size: 15px;
-                    font-weight: bold;
-                    color: #00e0d0;
-                    text-shadow: 0 0 15px rgba(0, 224, 208, 0.5);
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                    flex: 1;
-                    margin-right: 10px;
-                }
-                .lyrics-close {
-                    background: rgba(0, 0, 0, 0.4);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    color: #fff;
-                    border-radius: 50%;
-                    width: 32px; height: 32px;
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 16px;
-                    cursor: pointer;
-                    flex-shrink: 0;
-                }
-                .lyrics-close:active { background: rgba(0, 224, 208, 0.3); }
-                #lyricsContent {
-                    flex: 1;
-                    overflow-y: auto;
-                    color: #e8e8e8;
-                    font-size: 16px;
-                    line-height: 1.8;
-                    text-align: center;
-                    padding: 10px 0;
-                    scroll-behavior: smooth;
-                }
-                #lyricsContent p {
-                    margin: 6px 0;
-                    opacity: 0.7;
-                    transition: all 0.3s ease;
-                }
-                #lyricsContent p.active {
-                    opacity: 1;
-                    color: #00e0d0;
-                    font-weight: bold;
-                    font-size: 18px;
-                    text-shadow: 0 0 20px rgba(0, 224, 208, 0.6);
-                    transform: scale(1.02);
-                }
-                #lyricsContent .loading {
-                    color: #888;
-                    font-style: italic;
-                    padding: 40px 0;
-                }
-                #lyricsContent .no-lyrics {
-                    color: #888;
-                    font-style: italic;
-                    padding: 40px 0;
-                    text-align: center;
-                }
-            `;
-            document.head.appendChild(style);
-        }
+    function injectStyle() {
+        if (document.getElementById('lyricsStyleV2')) return;
+        var style = document.createElement('style');
+        style.id = 'lyricsStyleV2';
+        style.textContent = `
+            /* Floating lyrics button (left, bottom) */
+            #lyricsBtnV2 {
+                position: fixed;
+                bottom: 90px;
+                left: 15px;
+                z-index: 999997;
+                background: rgba(0, 224, 208, 0.15);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border: 1px solid rgba(0, 224, 208, 0.5);
+                border-radius: 50%;
+                width: 52px;
+                height: 52px;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 4px 18px rgba(0,0,0,0.7), 0 0 20px rgba(0,224,208,0.3);
+                transition: all 0.2s ease;
+            }
+            #lyricsBtnV2:active { transform: scale(0.9); background: rgba(0,224,208,0.4); }
+            #lyricsBtnV2 svg { width: 26px; height: 26px; fill: #00e0d0; }
+            #lyricsBtnV2.show { display: flex; }
 
-        // Create Lyrics button
-        if (!document.getElementById('lyricsBtn')) {
+            /* Lyrics panel - starts at the red line and goes to the bottom of the screen */
+            #lyricsPanelV2 {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                top: ${PANEL_TOP_OFFSET}px; /* starts where the red line is */
+                z-index: 9999996;
+                display: none;
+                flex-direction: column;
+                background: rgba(0, 0, 0, 0.35);
+                backdrop-filter: blur(30px) saturate(180%);
+                -webkit-backdrop-filter: blur(30px) saturate(180%);
+                border-top: 1px solid rgba(0, 224, 208, 0.45);
+                box-shadow: 0 -8px 40px rgba(0,0,0,0.8), 0 0 30px rgba(0,224,208,0.15);
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 0.35s ease, transform 0.35s ease;
+                overflow: hidden;
+            }
+            #lyricsPanelV2.show { display: flex; opacity: 1; transform: translateY(0); }
+
+            /* Fade at the top so lyrics disappear right at the red line */
+            #lyricsPanelV2::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0;
+                height: 80px;
+                background: linear-gradient(to bottom, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.6) 60%, transparent 100%);
+                pointer-events: none;
+                z-index: 2;
+            }
+            /* Fade at the bottom too, for a clean look */
+            #lyricsPanelV2::after {
+                content: '';
+                position: absolute;
+                bottom: 0; left: 0; right: 0;
+                height: 60px;
+                background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, transparent 100%);
+                pointer-events: none;
+                z-index: 2;
+            }
+
+            /* Header row with song title + close */
+            #lyricsHeaderV2 {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 20px 10px 20px;
+                z-index: 3;
+                position: relative;
+            }
+            #lyricsTitleV2 {
+                color: #00e0d0;
+                font-size: 13px;
+                font-weight: bold;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                text-shadow: 0 0 15px rgba(0,224,208,0.6);
+                flex: 1;
+                margin-right: 10px;
+            }
+            #lyricsCloseV2 {
+                width: 34px; height: 34px;
+                border-radius: 50%;
+                background: rgba(0,0,0,0.5);
+                border: 1px solid rgba(255,255,255,0.2);
+                color: #fff;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 16px;
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+            #lyricsCloseV2:active { background: rgba(0,224,208,0.35); }
+
+            /* Lyrics scroll area */
+            #lyricsScrollV2 {
+                flex: 1;
+                overflow-y: auto;
+                padding: 60px 24px 80px 24px;
+                box-sizing: border-box;
+                scroll-behavior: smooth;
+                -webkit-overflow-scrolling: touch;
+                mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+                -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+                position: relative;
+                z-index: 1;
+            }
+            #lyricsScrollV2::-webkit-scrollbar { display: none; }
+            #lyricsScrollV2 p {
+                color: rgba(230, 230, 230, 0.55);
+                font-size: 19px;
+                line-height: 1.7;
+                font-weight: 600;
+                text-align: center;
+                margin: 14px 0;
+                transition: color 0.4s ease, transform 0.4s ease, opacity 0.4s ease;
+            }
+            #lyricsScrollV2 p.active {
+                color: #00e0d0;
+                font-size: 22px;
+                text-shadow: 0 0 25px rgba(0, 224, 208, 0.7);
+                transform: scale(1.04);
+            }
+            #lyricsScrollV2 .msg {
+                color: #888;
+                font-style: italic;
+                font-size: 16px;
+                font-weight: normal;
+                padding: 40px 0;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function injectElements() {
+        // Lyrics button
+        if (!document.getElementById('lyricsBtnV2')) {
             var btn = document.createElement('div');
-            btn.id = 'lyricsBtn';
+            btn.id = 'lyricsBtnV2';
             btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg>';
             document.body.appendChild(btn);
+            btn.onclick = function(e) {
+                e.preventDefault(); e.stopPropagation();
+                openLyrics();
+            };
         }
-
-        // Create Overlay + Panel
-        if (!document.getElementById('lyricsOverlay')) {
-            var overlay = document.createElement('div');
-            overlay.id = 'lyricsOverlay';
-            overlay.innerHTML = `
-                <div id="lyricsPanel">
-                    <div class="lyrics-handle"></div>
-                    <div class="lyrics-header">
-                        <div class="lyrics-title" id="lyricsTitleText">Lyrics</div>
-                        <div class="lyrics-close" id="lyricsCloseBtn">✕</div>
-                    </div>
-                    <div id="lyricsContent">
-                        <p class="loading">No song playing...</p>
-                    </div>
+        // Lyrics panel
+        if (!document.getElementById('lyricsPanelV2')) {
+            var panel = document.createElement('div');
+            panel.id = 'lyricsPanelV2';
+            panel.innerHTML = `
+                <div id="lyricsHeaderV2">
+                    <div id="lyricsTitleV2">Lyrics</div>
+                    <div id="lyricsCloseV2">✕</div>
+                </div>
+                <div id="lyricsScrollV2">
+                    <p class="msg">Tap a song to load lyrics 🎧</p>
                 </div>
             `;
-            document.body.appendChild(overlay);
-
-            // Close handlers
-            document.getElementById('lyricsCloseBtn').onclick = function(e) {
+            document.body.appendChild(panel);
+            document.getElementById('lyricsCloseV2').onclick = function(e) {
                 e.stopPropagation();
-                hideLyrics();
+                closeLyrics();
             };
-            overlay.onclick = function(e) {
-                if (e.target === overlay) hideLyrics();
-            };
-
-            // Swipe down to close
-            var startY = 0;
-            var panel = document.getElementById('lyricsPanel');
-            panel.addEventListener('touchstart', function(e) {
-                startY = e.touches[0].clientY;
-            }, {passive: true});
-            panel.addEventListener('touchmove', function(e) {
-                var dy = e.touches[0].clientY - startY;
-                if (dy > 80) hideLyrics();
-            }, {passive: true});
-        }
-
-        // Fetch lyrics for a song
-        function fetchLyrics(title, artist) {
-            var content = document.getElementById('lyricsContent');
-            var titleEl = document.getElementById('lyricsTitleText');
-            titleEl.textContent = (title || 'Lyrics').substring(0, 40);
-            content.innerHTML = '<p class="loading">🔍 Searching for lyrics...</p>';
-
-            // Clean the title (remove "Official Video", "Lyrics", etc.)
-            var cleanTitle = (title || '').replace(/official|video|lyrics|audio|music|hd|4k|ft\.|feat\.|\(.*?\)|\[.*?\]/gi, '').trim();
-            var cleanArtist = (artist || '').replace(/vevo|topic|official/gi, '').trim();
-
-            var query = cleanArtist ? cleanArtist + ' ' + cleanTitle : cleanTitle;
-
-            // Use lyrics.ovh free API
-            fetch('https://api.lyrics.ovh/v1/' + encodeURIComponent(cleanArtist) + '/' + encodeURIComponent(cleanTitle))
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data && data.lyrics) {
-                        var lines = data.lyrics.split('\n').filter(function(l) { return l.trim() !== ''; });
-                        var html = '';
-                        for (var i = 0; i < lines.length; i++) {
-                            html += '<p>' + lines[i].replace(/</g, '&lt;') + '</p>';
-                        }
-                        content.innerHTML = html;
-                        content.scrollTop = 0;
-                    } else {
-                        showNoLyrics(content, cleanTitle, cleanArtist);
-                    }
-                })
-                .catch(function() {
-                    showNoLyrics(content, cleanTitle, cleanArtist);
-                });
-        }
-
-        function showNoLyrics(content, title, artist) {
-            content.innerHTML = '<p class="no-lyrics">🎵 No lyrics found for this song.<br><br>Try another track — we search thousands of songs.</p>';
         }
     }
 
-    // Public: show lyrics overlay
-    function showLyrics() {
-        var overlay = document.getElementById('lyricsOverlay');
-        if (overlay) overlay.classList.add('show');
-        // Determine current song
+    function openLyrics() {
+        var panel = document.getElementById('lyricsPanelV2');
+        if (!panel) return;
+        panel.classList.add('show');
+        loadLyricsForCurrentSong();
+    }
+    function closeLyrics() {
+        var panel = document.getElementById('lyricsPanelV2');
+        if (panel) panel.classList.remove('show');
+    }
+
+    // Fetch lyrics for the current song (YouTube or local DB)
+    function loadLyricsForCurrentSong() {
         var title = '', artist = '';
         if (window.currentSource === 'youtube' && window.ytResults && window.ytResults[window.currentIndex]) {
             title = window.ytResults[window.currentIndex].snippet.title || '';
@@ -1324,44 +1287,96 @@ document.addEventListener('DOMContentLoaded', function() {
             title = window.songs[window.currentIndex].title || '';
             artist = window.songs[window.currentIndex].artist_name || '';
         }
-        if (title) {
-            fetchLyrics(title, artist);
-        } else {
-            document.getElementById('lyricsContent').innerHTML = '<p class="no-lyrics">Play a song first to see lyrics 🎧</p>';
+        if (!title) {
+            document.getElementById('lyricsScrollV2').innerHTML = '<p class="msg">Play a song first 🎧</p>';
+            return;
         }
+        document.getElementById('lyricsTitleV2').textContent = title.substring(0, 40);
+
+        var cleanTitle = title.replace(/official|video|lyrics|audio|music|hd|4k|ft\.|feat\.|\(.*?\)|\[.*?\]/gi, '').trim();
+        var cleanArtist = (artist || '').replace(/vevo|topic|official/gi, '').trim();
+
+        var scroll = document.getElementById('lyricsScrollV2');
+        scroll.innerHTML = '<p class="msg">🔍 Searching for lyrics...</p>';
+
+        // Try lyrics.ovh first
+        fetch('https://api.lyrics.ovh/v1/' + encodeURIComponent(cleanArtist) + '/' + encodeURIComponent(cleanTitle))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data && data.lyrics) {
+                    renderLyrics(data.lyrics);
+                } else {
+                    // Fallback: try without artist
+                    return fetch('https://api.lyrics.ovh/v1/Unknown/' + encodeURIComponent(cleanTitle))
+                        .then(function(r) { return r.json(); })
+                        .then(function(d2) {
+                            if (d2 && d2.lyrics) renderLyrics(d2.lyrics);
+                            else scroll.innerHTML = '<p class="msg">🎵 No lyrics found for this song.</p>';
+                        });
+                }
+            })
+            .catch(function() {
+                scroll.innerHTML = '<p class="msg">🎵 No lyrics found for this song.</p>';
+            });
     }
 
-    function hideLyrics() {
-        var overlay = document.getElementById('lyricsOverlay');
-        if (overlay) overlay.classList.remove('show');
+    // Render lyrics and set up the karaoke-like scroll
+    function renderLyrics(rawLyrics) {
+        var scroll = document.getElementById('lyricsScrollV2');
+        var lines = rawLyrics.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
+        var html = '';
+        for (var i = 0; i < lines.length; i++) {
+            html += '<p data-line="' + i + '">' + lines[i].replace(/</g, '&lt;') + '</p>';
+        }
+        scroll.innerHTML = html;
+        scroll.scrollTop = 0;
+
+        // Auto-scroll slowly so lyrics travel upward like karaoke
+        startAutoScroll(scroll);
     }
 
-    // Add click handler to lyrics button
-    function bindBtn() {
-        var btn = document.getElementById('lyricsBtn');
-        if (btn && !btn._bound) {
-            btn._bound = true;
-            btn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                showLyrics();
-            };
-        }
+    var _autoScrollIv = null;
+    function startAutoScroll(scroll) {
+        if (_autoScrollIv) clearInterval(_autoScrollIv);
+        var lines = scroll.querySelectorAll('p');
+        if (lines.length === 0) return;
+        var i = 0;
+        _autoScrollIv = setInterval(function() {
+            // If panel closed, stop
+            var panel = document.getElementById('lyricsPanelV2');
+            if (!panel || !panel.classList.contains('show')) {
+                clearInterval(_autoScrollIv);
+                _autoScrollIv = null;
+                return;
+            }
+            if (i >= lines.length) {
+                clearInterval(_autoScrollIv);
+                _autoScrollIv = null;
+                return;
+            }
+            // Mark active line
+            lines.forEach(function(p){ p.classList.remove('active'); });
+            lines[i].classList.add('active');
+            // Smoothly scroll so active line sits mid-panel
+            var target = lines[i].offsetTop - (scroll.clientHeight / 2) + (lines[i].clientHeight / 2);
+            scroll.scrollTo({ top: target, behavior: 'smooth' });
+            i++;
+        }, 3500); // advance every ~3.5 seconds (adjust to taste)
     }
 
     function init() {
-        initLyrics();
-        bindBtn();
+        injectStyle();
+        injectElements();
 
-        // Show lyrics button only when full player is active
+        // Show lyrics button only when the full player is active
         setInterval(function() {
-            var btn = document.getElementById('lyricsBtn');
+            var btn = document.getElementById('lyricsBtnV2');
             if (!btn) return;
-            var fullPlayer = document.getElementById('fullPlayer');
-            if (fullPlayer && fullPlayer.classList.contains('active')) {
-                btn.classList.add('show');
-            } else {
+            var fp = document.getElementById('fullPlayer');
+            if (fp && fp.classList.contains('active')) btn.classList.add('show');
+            else {
                 btn.classList.remove('show');
+                closeLyrics();
             }
         }, 400);
     }
@@ -1372,8 +1387,8 @@ document.addEventListener('DOMContentLoaded', function() {
         init();
     }
 
-    // Expose to global
-    window.showLyrics = showLyrics;
-    window.hideLyrics = hideLyrics;
+    // Expose in case you want to trigger from elsewhere
+    window.openLyrics = openLyrics;
+    window.closeLyrics = closeLyrics;
 })();
 // END LYRICS FEATURE
