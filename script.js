@@ -1917,10 +1917,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Play first song
             if (typeof window.playYoutube === 'function') window.playYoutube(0);
 
-            // Open the full player immediately
+            // Open the full player AFTER the video has time to start
             setTimeout(function() {
                 if (typeof window.openFullPlayer === 'function') window.openFullPlayer();
-            }, 400);
+                // Force the youtube-player div to be visible inside the player box
+                var yp = document.getElementById('youtube-player');
+                var fa = document.getElementById('fullArt');
+                if (yp) yp.style.display = 'block';
+                if (fa) fa.style.display = 'none';
+            }, 1500);
 
             // Auto-extend as queue runs low
             if (radioInterval) clearInterval(radioInterval);
