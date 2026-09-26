@@ -2150,3 +2150,223 @@ document.addEventListener('DOMContentLoaded', function() {
     forceInitYouTube();
 })();
 // END FORCE YT INIT
+
+
+// AUDIO VISUALIZER
+(function() {
+    var audioCtx = null;
+    var analyser = null;
+    var source = null;
+    var rafId = null;
+    var canvas = null;
+    var ctx = null;
+    var isRunning = false;
+    var hasFailed = false;
+
+    function injectCanvas() {
+        if (document.getElementById('visualizerCanvas')) return;
+        var fab = document.getElementById('fullArtBox');
+        if (!fab) return;
+
+        // Ensure fullArtBox is positioned so canvas can sit inside it
+        var fabStyle = window.getComputedStyle(fab);
+        if (fabStyle.position === 'static') {
+            fab.style.position = 'relative';
+        }
+
+        // Create the canvas
+        canvas = document.createElement('canvas');
+        canvas.id = 'visualizerCanvas';
+        canvas.style.cssText = 'position:absolute;bottom:0;left:0;width:100%;height:70px;z-index:5;pointer-events:none;opacity:0.9;';
+        fab.appendChild(canvas);
+
+        // Set canvas pixel size to match display
+        var rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * 2; // retina
+        canvas.height = rect.height * 2;
+        ctx = canvas.getContext('2d');
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (!canvas) return;
+            var r = canvas.getBoundingClientRect();
+            canvas.width = r.width * 2;
+            canvas.height = r.height * 2;
+        });
+    }
+
+    function setupAudioContext() {
+        if (hasFailed) return false;
+        if (audioCtx && analyser) return true;
+
+        try {
+            var AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) {
+                hasFailed = true;
+                return false;
+            }
+            audioCtx = new AudioCtx();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 128; // smaller = fewer bars, more responsive
+            analyser.smoothingTimeConstant = 0.75;
+            analyser.connect ? null : null; // no-op, kept for clarity
+
+            // Try to hook into the HTML audio element first (for DB/local songs)
+            var audioEl = document.getElementById('audioPlayer');
+            if (audioEl) {
+                try {
+                    if (!audioEl._visualizerHooked) {
+                        source = audioCtx.createMediaElementSource(audioEl);
+                        source.connect(analyser);
+                        analyser.connect(audioCtx.destination);
+                        audioEl._visualizerHooked = true;
+                    }
+                } catch(e) {
+                    // Already hooked or CORS issue
+                }
+            }
+            return true;
+        } catch(err) {
+            hasFailed = true;
+            return false;
+        }
+    }
+
+    // Fallback: generate a fake beat that reacts to the song title hash
+    // (Used when Web Audio API can't tap into the YouTube iframe)
+    var fallbackSeed = 0;
+    function fallbackData() {
+        var data = new Uint8Array(64);
+        var t = Date.now() / 200;
+        for (var i = 0; i < 64; i++) {
+            var bass = Math.sin(t * (i * 0.2 + 1)) * 0.5 + 0.5;
+            var mid = Math.sin(t * (i * 0.4 + 2) + fallbackSeed) * 0.3 + 0.5;
+            var val = (bass * 0.7 + mid * 0.3) * 220;
+            // Add randomness so it looks alive
+            val += Math.random() * 40;
+            data[i] = Math.min(255, val);
+        }
+        return data;
+    }
+
+    function draw() {
+        if (!isRunning) return;
+        rafId = requestAnimationFrame(draw);
+        if (!ctx || !canvas) return;
+
+        var W = canvas.width;
+        var H = canvas.height;
+
+        // Clear with dark gradient
+        ctx.clearRect(0, 0, W, H);
+
+        var data;
+        if (analyser && window.currentSource === 'db') {
+            data = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(data);
+        } else {
+            // Fallback animated data (YouTube or no audio access)
+            data = fallbackData();
+        }
+
+        var barCount = 64;
+        var barWidth = W / barCount;
+        var gap = barWidth * 0.15;
+
+        for (var i = 0; i < barCount; i++) {
+            var v = data[i] || 0;
+            var barH = (v / 255) * H;
+            if (barH < 4) barH = 4;
+
+            var x = i * barWidth;
+            var y = H - barH;
+
+            // Teal gradient
+            var grad = ctx.createLinearGradient(0, y, 0, H);
+            grad.addColorStop(0, 'rgba(0, 224, 208, 0.95)');
+            grad.addColorStop(0.5, 'rgba(0, 180, 170, 0.7)');
+            grad.addColorStop(1, 'rgba(0, 143, 133, 0.2)');
+
+            ctx.fillStyle = grad;
+            ctx.shadowColor = 'rgba(0, 224, 208, 0.7)';
+            ctx.shadowBlur = 12;
+
+            // Rounded top
+            var radius = Math.min(barWidth - gap, barH / 2);
+            ctx.beginPath();
+            ctx.moveTo(x + gap/2, H);
+            ctx.lineTo(x + gap/2, y + radius);
+            ctx.quadraticCurveTo(x + gap/2, y, x + gap/2 + radius, y);
+            ctx.lineTo(x + barWidth - gap/2 - radius, y);
+            ctx.quadraticCurveTo(x + barWidth - gap/2, y, x + barWidth - gap/2, y + radius);
+            ctx.lineTo(x + barWidth - gap/2, H);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        ctx.shadowBlur = 0;
+
+        // Reflection line at the bottom
+        var reflect = ctx.createLinearGradient(0, H - 10, 0, H + 5);
+        reflect.addColorStop(0, 'rgba(0, 224, 208, 0)');
+        reflect.addColorStop(0.5, 'rgba(0, 224, 208, 0.4)');
+        reflect.addColorStop(1, 'rgba(0, 224, 208, 0)');
+        ctx.fillStyle = reflect;
+        ctx.fillRect(0, H - 10, W, 15);
+    }
+
+    function start() {
+        if (isRunning) return;
+        if (!canvas) injectCanvas();
+        if (!canvas) return;
+        isRunning = true;
+        // Resume audio context (mobile requires user gesture)
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(function(){});
+        }
+        draw();
+    }
+
+    function stop() {
+        isRunning = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function init() {
+        injectCanvas();
+        setupAudioContext();
+
+        // Resume audio context on any tap
+        document.addEventListener('touchstart', function() {
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(function(){});
+            }
+        }, {passive: true});
+        document.addEventListener('click', function() {
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(function(){});
+            }
+        });
+
+        // Watch for the full player opening/closing
+        setInterval(function() {
+            var fp = document.getElementById('fullPlayer');
+            if (fp && fp.classList.contains('active')) {
+                if (!canvas) injectCanvas();
+                if (!isRunning) start();
+            } else {
+                if (isRunning) stop();
+            }
+        }, 500);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(init, 800);
+        });
+    } else {
+        setTimeout(init, 800);
+    }
+})();
+// END AUDIO VISUALIZER
