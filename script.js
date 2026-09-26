@@ -2474,3 +2474,121 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 })();
 // END COMING SOON DOWNLOAD
+
+
+// FIX RECENTLY PLAYED
+(function() {
+    // Wait for the page to be ready
+    function initFix() {
+        // Override the renderRecentlyPlayed function globally
+        window.renderRecentlyPlayed = function() {
+            var c = document.getElementById('recentlyPlayed');
+            if (!c) return;
+
+            // 1. First, try to get songs from the offline cache (YouTube songs)
+            var cachedSongs = [];
+            try {
+                if (window.getCachedSongs) cachedSongs = window.getCachedSongs();
+                else {
+                    var raw = localStorage.getItem('bi_offline_cache');
+                    cachedSongs = raw ? JSON.parse(raw) : [];
+                }
+            } catch(e) {}
+
+            // 2. Also get local DB songs (if any)
+            var dbSongs = [];
+            try {
+                if (window.songs && window.songs.length > 0) dbSongs = window.songs;
+            } catch(e) {}
+
+            // 3. Combine them: cached songs first, then DB songs
+            var combined = [];
+            var seenIds = {};
+
+            // Add cached songs (they have .id, .title, .artist, .thumbnail)
+            cachedSongs.forEach(function(s) {
+                if (!s.id || seenIds[s.id]) return;
+                seenIds[s.id] = true;
+                combined.push({
+                    id: s.id,
+                    title: s.title || 'Unknown',
+                    artist: s.artist || 'Unknown',
+                    thumbnail: s.thumbnail || '',
+                    source: 'youtube'
+                });
+            });
+
+            // Add DB songs (they have .id, .title, .artist_name, .cover_art_url)
+            dbSongs.forEach(function(s) {
+                if (!s.id || seenIds[s.id]) return;
+                seenIds[s.id] = true;
+                combined.push({
+                    id: s.id,
+                    title: s.title || 'Unknown',
+                    artist: s.artist_name || 'Unknown',
+                    thumbnail: s.cover_art_url || '',
+                    source: 'db'
+                });
+            });
+
+            // 4. Render them
+            if (combined.length === 0) {
+                c.innerHTML = '<p style="color:#666;font-size:.75rem;padding:10px 0;">🎧 Play a song to see it here.</p>';
+                return;
+            }
+
+            c.innerHTML = '';
+            combined.slice(0, 8).forEach(function(s) {
+                var el = document.createElement('div');
+                el.className = 'card';
+                el.onclick = function() {
+                    if (s.source === 'db') {
+                        // Play local DB song
+                        var idx = window.songs.findIndex(function(x) { return x.id === s.id; });
+                        if (idx >= 0 && typeof window.playDbSong === 'function') window.playDbSong(idx);
+                    } else {
+                        // Play YouTube song - build a mock ytResults
+                        var mock = {
+                            id: { videoId: s.id },
+                            snippet: {
+                                title: s.title,
+                                channelTitle: s.artist,
+                                thumbnails: {
+                                    default: { url: s.thumbnail },
+                                    high: { url: s.thumbnail }
+                                }
+                            }
+                        };
+                        window.ytResults = [mock];
+                        window.playQueue = window.ytResults;
+                        if (typeof window.playYoutube === 'function') window.playYoutube(0);
+                    }
+                };
+                el.innerHTML = '<div class="card-img"><img src="' + (s.thumbnail || 'https://via.placeholder.com/150') + '" onerror="this.src=\'https://via.placeholder.com/150\'"></div><div class="card-title">' + (s.title || 'Unknown').replace(/</g, '&lt;') + '</div><div class="card-sub">' + (s.artist || 'Unknown').replace(/</g, '&lt;') + '</div>';
+                c.appendChild(el);
+            });
+
+            console.log('[Recently Played] Rendered ' + combined.length + ' songs.');
+        };
+
+        // Call it once on load
+        window.renderRecentlyPlayed();
+
+        // Refresh every 4 seconds
+        setInterval(function() {
+            var c = document.getElementById('recentlyPlayed');
+            if (c) window.renderRecentlyPlayed();
+        }, 4000);
+
+        console.log('✅ Recently Played fixed - now shows YouTube + DB songs from cache.');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initFix, 2500);
+        });
+    } else {
+        setTimeout(initFix, 2500);
+    }
+})();
+// END FIX RECENTLY PLAYED
