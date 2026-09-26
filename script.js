@@ -2320,3 +2320,157 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 })();
 // END OFFLINE CACHE
+
+
+// COMING SOON DOWNLOAD
+(function() {
+    function injectStyle() {
+        if (document.getElementById('comingSoonStyle')) return;
+        var style = document.createElement('style');
+        style.id = 'comingSoonStyle';
+        style.textContent = `
+            #comingSoonOverlay {
+                display: none;
+                position: fixed;
+                top: 0; left: 0;
+                width: 100vw; height: 100vh;
+                z-index: 99999999;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                box-sizing: border-box;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            #comingSoonOverlay.show {
+                display: flex;
+                opacity: 1;
+            }
+            #comingSoonPanel {
+                width: 100%;
+                max-width: 340px;
+                background: linear-gradient(135deg, rgba(0, 224, 208, 0.18), rgba(0, 143, 133, 0.08));
+                backdrop-filter: blur(30px);
+                -webkit-backdrop-filter: blur(30px);
+                border: 1px solid rgba(0, 224, 208, 0.5);
+                border-radius: 22px;
+                padding: 28px 24px 22px;
+                text-align: center;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 40px rgba(0, 224, 208, 0.25);
+                transform: translateY(20px) scale(0.95);
+                animation: csIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            }
+            @keyframes csIn {
+                to { transform: translateY(0) scale(1); }
+            }
+            #comingSoonIcon {
+                font-size: 48px;
+                margin-bottom: 10px;
+                display: block;
+                animation: csBob 2s ease-in-out infinite;
+            }
+            @keyframes csBob {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-6px); }
+            }
+            #comingSoonTitle {
+                color: #00e0d0;
+                font-size: 20px;
+                font-weight: 900;
+                letter-spacing: 1px;
+                margin-bottom: 10px;
+                text-shadow: 0 0 20px rgba(0, 224, 208, 0.7);
+            }
+            #comingSoonBody {
+                color: #ccc;
+                font-size: 14px;
+                line-height: 1.6;
+                margin-bottom: 20px;
+            }
+            #comingSoonBody b {
+                color: #00e0d0;
+            }
+            #comingSoonBtn {
+                width: 100%;
+                padding: 14px;
+                background: linear-gradient(135deg, #00e0d0, #008f85);
+                color: #000;
+                border: none;
+                border-radius: 12px;
+                font-size: 15px;
+                font-weight: 900;
+                letter-spacing: 1px;
+                cursor: pointer;
+                box-shadow: 0 8px 25px rgba(0, 224, 208, 0.5);
+                animation: csPulse 1.8s ease-in-out infinite;
+            }
+            #comingSoonBtn:active { transform: scale(0.96); }
+            @keyframes csPulse {
+                0%, 100% { transform: scale(1); box-shadow: 0 8px 25px rgba(0, 224, 208, 0.5); }
+                50% { transform: scale(1.03); box-shadow: 0 10px 35px rgba(0, 224, 208, 0.8); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function injectOverlay() {
+        if (document.getElementById('comingSoonOverlay')) return;
+        var overlay = document.createElement('div');
+        overlay.id = 'comingSoonOverlay';
+        overlay.innerHTML = `
+            <div id="comingSoonPanel">
+                <span id="comingSoonIcon">⬇️</span>
+                <div id="comingSoonTitle">Download Coming Soon</div>
+                <div id="comingSoonBody">
+                    We're working hard to bring downloads to B.I Music.<br><br>
+                    In the meantime, keep <b>streaming live</b> and enjoy the vibes! 🎧
+                </div>
+                <button id="comingSoonBtn" onclick="window.hideComingSoon()">🎧 OK, KEEP STREAMING</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        // Close on overlay tap
+        overlay.onclick = function(e) {
+            if (e.target === overlay) window.hideComingSoon();
+        };
+    }
+
+    window.showComingSoon = function() {
+        injectOverlay();
+        var el = document.getElementById('comingSoonOverlay');
+        if (el) el.classList.add('show');
+    };
+
+    window.hideComingSoon = function() {
+        var el = document.getElementById('comingSoonOverlay');
+        if (el) el.classList.remove('show');
+    };
+
+    // Override dlId to show Coming Soon instead
+    window.dlId = function(vid) {
+        window.showComingSoon();
+    };
+
+    // Override downloadCurrent to show Coming Soon instead
+    window.downloadCurrent = function() {
+        window.showComingSoon();
+    };
+
+    function init() {
+        injectStyle();
+        injectOverlay();
+        console.log('[Coming Soon] Download buttons now show "Coming Soon" popup.');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(init, 800);
+        });
+    } else {
+        setTimeout(init, 800);
+    }
+})();
+// END COMING SOON DOWNLOAD
