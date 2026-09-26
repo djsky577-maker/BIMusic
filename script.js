@@ -1409,8 +1409,52 @@ document.addEventListener('DOMContentLoaded', function() {
 // END LYRICS FEATURE
 
 
+
+
+
 // TRENDING SECTION
 (function() {
+    // Words that mean "this is not a real song"
+    var BAD_WORDS = [
+        'nonstop', 'non stop', 'non-stop', 'no stop',
+        'playlist', 'mix', 'megamix', 'dj mix', 'mixtape',
+        '1 hour', '2 hour', '3 hour', '10 hours', 'one hour',
+        'hour loop', 'loop', 'extended', 'full album',
+        'compilation', 'greatest hits album', 'top 100',
+        'best of playlist', 'all songs', 'audio jukebox',
+        'jukebox', 'continuous', 'endless', 'marathon',
+        'vol.', 'volume', 'part 1', 'part 2', 'part 3',
+        'full video songs', 'video songs', 'jukebox songs'
+    ];
+
+    // Good words - signs of a real trending song
+    var GOOD_WORDS = [
+        'official video', 'official music video', 'lyric video',
+        'audio', 'music video', 'ft.', 'feat.', 'official'
+    ];
+
+    function isRealSong(title) {
+        if (!title) return false;
+        var t = title.toLowerCase();
+
+        // Reject if it has bad words
+        for (var i = 0; i < BAD_WORDS.length; i++) {
+            if (t.indexOf(BAD_WORDS[i]) >= 0) return false;
+        }
+
+        // Reject if title has more than 80 characters (usually nonstop mixes)
+        if (title.length > 85) return false;
+
+        // Reject if it contains a number followed by "hour"
+        if (/\d+\s*(hour|hr|h)/i.test(t)) return false;
+
+        // Reject pure playlist-style titles (many pipe | symbols)
+        if ((title.match(/\|/g) || []).length >= 3) return false;
+
+        // Accept
+        return true;
+    }
+
     function injectStyle() {
         if (document.getElementById('trendingStyle')) return;
         var style = document.createElement('style');
@@ -1573,7 +1617,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var scroll = document.getElementById('trendingScroll');
         if (!scroll) return;
 
-        // Show 4 skeleton placeholders while loading
         scroll.innerHTML = '';
         for (var s = 0; s < 4; s++) {
             var skel = document.createElement('div');
@@ -1582,21 +1625,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            // Fetch trending music videos
-            var queries = ['trending music 2025', 'top hits 2025', 'trending songs 2025', 'viral music 2025'];
-            var query = queries[Math.floor(Math.random() * queries.length)];
+            // Use varied real-song trending queries
+            var queries = [
+                'top hits 2025 official video',
+                'Billboard Hot 100 2025',
+                'trending songs this week',
+                'new music 2025 official',
+                'best songs 2025',
+                'viral hits 2025',
+                'afrobeats 2025 hits',
+                'hip hop 2025 hits',
+                'rnb 2025 songs',
+                'pop hits 2025 official video'
+            ];
 
-            var d = await window.pget('/search?q=' + encodeURIComponent(query) + '&filter=videos');
-            var items = (d.items || []).filter(function(v) { return v.url && v.title; }).slice(0, 20);
+            // Pick 2 random queries and combine the results
+            var shuffledQueries = queries.sort(function() { return Math.random() - 0.5; });
+            var allSongs = [];
 
-            if (items.length === 0) {
+            for (var q = 0; q < 2; q++) {
+                try {
+                    var d = await window.pget('/search?q=' + encodeURIComponent(shuffledQueries[q]) + '&filter=videos');
+                    var items = (d.items || []).filter(function(v) { return v.url && v.title; });
+                    items.forEach(function(v) {
+                        // Filter to only real songs
+                        if (isRealSong(v.title)) {
+                            allSongs.push(v);
+                        }
+                    });
+                } catch(e) {}
+            }
+
+            // Remove duplicates
+            var seen = {};
+            var unique = [];
+            allSongs.forEach(function(v) {
+                var vid = (v.url || '').replace('/watch?v=', '');
+                if (!seen[vid]) {
+                    seen[vid] = true;
+                    unique.push(v);
+                }
+            });
+
+            if (unique.length === 0) {
                 scroll.innerHTML = '<div style="color:#888;font-style:italic;padding:20px;">No trending songs right now.</div>';
                 return;
             }
 
+            // Take the top 20 and shuffle slightly
+            var final = unique.slice(0, 20);
+
             scroll.innerHTML = '';
-            items.forEach(function(v, idx) {
-                var vid = (v.url || '').replace('/watch?v=', '');
+            final.forEach(function(v, idx) {
                 var rank = idx + 1;
 
                 var card = document.createElement('div');
@@ -1617,9 +1697,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
 
-                // Play handler
                 card.onclick = function() {
-                    var newQueue = items.map(function(x) {
+                    var newQueue = final.map(function(x) {
                         return {
                             id: { videoId: (x.url || '').replace('/watch?v=', '') },
                             snippet: {
@@ -1642,13 +1721,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function injectSection() {
-        // Find the home tab
         var homeTab = document.getElementById('tab-home');
-        if (!homeTab) {
-            console.log('[Trending] Home tab not found yet, will retry...');
-            return false;
-        }
-        // Don't inject twice
+        if (!homeTab) return false;
         if (document.getElementById('trendingSection')) return true;
 
         var section = document.createElement('div');
@@ -1662,7 +1736,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <div id="trendingScroll"></div>
         `;
 
-        // Insert at the very top of the home tab
         if (homeTab.firstChild) {
             homeTab.insertBefore(section, homeTab.firstChild);
         } else {
@@ -1673,8 +1746,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function init() {
         injectStyle();
-
-        // Wait for the home tab to exist and inject the section
         var tries = 0;
         var iv = setInterval(function() {
             tries++;
@@ -1682,7 +1753,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearInterval(iv);
                 loadTrending();
             }
-            if (tries > 40) clearInterval(iv); // stop after 20 seconds
+            if (tries > 40) clearInterval(iv);
         }, 500);
     }
 
@@ -1692,9 +1763,6 @@ document.addEventListener('DOMContentLoaded', function() {
         init();
     }
 
-    // Expose a manual refresh function
-    window.refreshTrending = function() {
-        loadTrending();
-    };
+    window.refreshTrending = function() { loadTrending(); };
 })();
 // END TRENDING SECTION
