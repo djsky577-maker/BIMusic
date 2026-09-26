@@ -2102,7 +2102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     rel: 0,
                     modestbranding: 1,
                     enablejsapi: 1,
-                    origin: window.location.origin
+                    origin: 'https://djsky577-maker.github.io'
                 },
                 events: {
                     'onReady': function() {
