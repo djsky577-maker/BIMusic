@@ -689,7 +689,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isInApp) {
         btn.style.display = 'none';
     } else {
-        btn.style.display = 'flex';
+        btn.style.setProperty('display', 'flex', 'important');
     }
 });
 
@@ -1760,7 +1760,7 @@ document.addEventListener('DOMContentLoaded', function() {
         style.id = 'radioStyle';
         style.textContent = `
             #artistRadioBtn {
-                display: none;
+                display: none !important;
                 width: 90%;
                 max-width: 320px;
                 margin: 14px auto 10px auto;
@@ -2006,7 +2006,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!btn) return;
 
             if (artistModal && artistModal.classList.contains('active')) {
-                btn.style.display = 'flex';
+                btn.style.setProperty('display', 'flex', 'important');
                 var span = btn.querySelector('span');
                 if (span) {
                     if (radioShown && radioArtist === (window.currentArtist && window.currentArtist.name)) {
