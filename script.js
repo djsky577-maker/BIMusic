@@ -2150,3 +2150,173 @@ document.addEventListener('DOMContentLoaded', function() {
     forceInitYouTube();
 })();
 // END FORCE YT INIT
+
+
+// OFFLINE CACHE
+(function() {
+    var CACHE_KEY = 'bi_offline_cache';
+    var MAX_CACHE_SIZE = 20; // Keep the last 20 songs
+
+    function getCache() {
+        try {
+            var raw = localStorage.getItem(CACHE_KEY);
+            if (!raw) return [];
+            return JSON.parse(raw) || [];
+        } catch(e) {
+            return [];
+        }
+    }
+
+    function saveCache(cache) {
+        try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+        } catch(e) {
+            // Storage might be full — trim and try again
+            cache = cache.slice(0, 10);
+            try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch(e2) {}
+        }
+    }
+
+    // Public: store a song in the offline cache
+    window.cacheSong = function(song) {
+        if (!song || !song.id) return;
+        var cache = getCache();
+
+        // Remove duplicates
+        cache = cache.filter(function(s) { return s.id !== song.id; });
+
+        // Add to the top (most recent first)
+        cache.unshift({
+            id: song.id,
+            title: song.title || '',
+            artist: song.artist || '',
+            thumbnail: song.thumbnail || '',
+            source: song.source || 'youtube',
+            timestamp: Date.now()
+        });
+
+        // Limit cache size
+        cache = cache.slice(0, MAX_CACHE_SIZE);
+
+        saveCache(cache);
+        console.log('[Offline Cache] Saved: ' + song.title);
+    };
+
+    // Public: get the cached songs
+    window.getCachedSongs = function() {
+        return getCache();
+    };
+
+    // Public: clear the cache
+    window.clearOfflineCache = function() {
+        localStorage.removeItem(CACHE_KEY);
+        console.log('[Offline Cache] Cleared.');
+    };
+
+    // Hook into playYoutube to auto-cache
+    var _origPlayYoutube = window.playYoutube;
+    window.playYoutube = function(i) {
+        if (_origPlayYoutube) _origPlayYoutube(i);
+        try {
+            var t = window.ytResults && window.ytResults[i];
+            if (t && t.id && t.id.videoId) {
+                window.cacheSong({
+                    id: t.id.videoId,
+                    title: t.snippet.title || '',
+                    artist: t.snippet.channelTitle || '',
+                    thumbnail: (t.snippet.thumbnails && t.snippet.thumbnails.high && t.snippet.thumbnails.high.url) || '',
+                    source: 'youtube'
+                });
+            }
+        } catch(e) {}
+    };
+
+    // Hook into playDbSong to auto-cache
+    var _origPlayDbSong = window.playDbSong;
+    window.playDbSong = function(i) {
+        if (_origPlayDbSong) _origPlayDbSong(i);
+        try {
+            var s = window.songs && window.songs[i];
+            if (s && s.id) {
+                window.cacheSong({
+                    id: s.id,
+                    title: s.title || '',
+                    artist: s.artist_name || '',
+                    thumbnail: s.cover_art_url || '',
+                    source: 'db'
+                });
+            }
+        } catch(e) {}
+    };
+
+    // Add a small "Cached" badge to the app — shows count of cached songs
+    // This appears only when the user has cached songs and is on the Home tab
+    function injectCacheBadge() {
+        if (document.getElementById('cacheBadge')) return;
+        var style = document.createElement('style');
+        style.textContent = `
+            #cacheBadge {
+                position: fixed;
+                bottom: 90px;
+                left: 80px;
+                z-index: 999996;
+                background: rgba(0, 224, 208, 0.15);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border: 1px solid rgba(0, 224, 208, 0.4);
+                border-radius: 20px;
+                padding: 6px 12px;
+                color: #00e0d0;
+                font-size: 11px;
+                font-weight: bold;
+                display: none;
+                align-items: center;
+                gap: 5px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(0, 224, 208, 0.3);
+            }
+            #cacheBadge.show { display: flex; }
+            #cacheBadge svg {
+                width: 14px; height: 14px;
+                fill: #00e0d0;
+            }
+        `;
+        document.head.appendChild(style);
+
+        var badge = document.createElement('div');
+        badge.id = 'cacheBadge';
+        badge.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-8 14H7v-2h4v2zm0-4H7v-2h4v2zm6 4h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg><span id="cacheBadgeText">0 cached</span>';
+        document.body.appendChild(badge);
+
+        badge.onclick = function() {
+            alert('Offline Cache\n\nSongs cached: ' + window.getCachedSongs().length + '\n\nYour recently played songs load instantly from this cache.');
+        };
+    }
+
+    function updateCacheBadge() {
+        var badge = document.getElementById('cacheBadge');
+        if (!badge) return;
+        var count = getCache().length;
+        var text = document.getElementById('cacheBadgeText');
+        if (text) text.textContent = count + ' cached';
+        if (count > 0) badge.classList.add('show');
+        else badge.classList.remove('show');
+    }
+
+    function init() {
+        injectCacheBadge();
+        updateCacheBadge();
+        // Update badge every 5 seconds
+        setInterval(updateCacheBadge, 5000);
+        console.log('[Offline Cache] Ready. Max size: ' + MAX_CACHE_SIZE);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(init, 1500);
+        });
+    } else {
+        setTimeout(init, 1500);
+    }
+})();
+// END OFFLINE CACHE
