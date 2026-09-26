@@ -1412,48 +1412,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+
+
+
 // TRENDING SECTION
 (function() {
-    // Words that mean "this is not a real song"
     var BAD_WORDS = [
         'nonstop', 'non stop', 'non-stop', 'no stop',
         'playlist', 'mix', 'megamix', 'dj mix', 'mixtape',
-        '1 hour', '2 hour', '3 hour', '10 hours', 'one hour',
-        'hour loop', 'loop', 'extended', 'full album',
-        'compilation', 'greatest hits album', 'top 100',
-        'best of playlist', 'all songs', 'audio jukebox',
-        'jukebox', 'continuous', 'endless', 'marathon',
-        'vol.', 'volume', 'part 1', 'part 2', 'part 3',
-        'full video songs', 'video songs', 'jukebox songs'
-    ];
-
-    // Good words - signs of a real trending song
-    var GOOD_WORDS = [
-        'official video', 'official music video', 'lyric video',
-        'audio', 'music video', 'ft.', 'feat.', 'official'
+        '1 hour', '2 hour', '3 hour', 'hour loop',
+        'compilation', 'jukebox', 'continuous', 'endless',
+        'vol.', 'volume', 'full album', 'all songs',
+        'best of playlist', 'top 100 songs', 'video songs',
+        'jukebox songs', 'hits playlist'
     ];
 
     function isRealSong(title) {
         if (!title) return false;
         var t = title.toLowerCase();
-
-        // Reject if it has bad words
         for (var i = 0; i < BAD_WORDS.length; i++) {
             if (t.indexOf(BAD_WORDS[i]) >= 0) return false;
         }
-
-        // Reject if title has more than 80 characters (usually nonstop mixes)
-        if (title.length > 85) return false;
-
-        // Reject if it contains a number followed by "hour"
-        if (/\d+\s*(hour|hr|h)/i.test(t)) return false;
-
-        // Reject pure playlist-style titles (many pipe | symbols)
+        if (title.length > 90) return false;
+        if (/\d+\s*(hour|hr)/i.test(t)) return false;
         if ((title.match(/\|/g) || []).length >= 3) return false;
-
-        // Accept
-        return true;
+        // Must look like a song (has "official", "ft", "feat", or artist name)
+        var hasGood = false;
+        var goodWords = ['official', 'ft.', 'feat.', 'lyric', 'audio', 'music video'];
+        for (var j = 0; j < goodWords.length; j++) {
+            if (t.indexOf(goodWords[j]) >= 0) { hasGood = true; break; }
+        }
+        // Also accept if it's a short title (probably just song name)
+        if (title.length < 60) hasGood = true;
+        return hasGood;
     }
+
+    // Real trending artists (mix of global + African)
+    var TRENDING_ARTISTS = [
+        'Drake', 'Taylor Swift', 'The Weeknd', 'Ed Sheeran',
+        'Burna Boy', 'Wizkid', 'Davido', 'Tems', 'Asake',
+        'Rema', 'Fireboy DML', 'Joeboy', 'SZA', 'Doja Cat',
+        'Post Malone', 'Billie Eilish', 'Ariana Grande',
+        'Bruno Mars', 'Chris Brown', 'Rihanna', 'Beyoncé',
+        'Kendrick Lamar', 'Travis Scott', 'Nicki Minaj',
+        'Ruger', 'BNXN', 'Omah Lay', 'Ayra Starr', 'Tyla'
+    ];
 
     function injectStyle() {
         if (document.getElementById('trendingStyle')) return;
@@ -1625,34 +1628,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            // Use varied real-song trending queries
-            var queries = [
-                'top hits 2025 official video',
-                'Billboard Hot 100 2025',
-                'trending songs this week',
-                'new music 2025 official',
-                'best songs 2025',
-                'viral hits 2025',
-                'afrobeats 2025 hits',
-                'hip hop 2025 hits',
-                'rnb 2025 songs',
-                'pop hits 2025 official video'
-            ];
-
-            // Pick 2 random queries and combine the results
-            var shuffledQueries = queries.sort(function() { return Math.random() - 0.5; });
+            // Shuffle artists and pick 4 random ones
+            var shuffled = TRENDING_ARTISTS.slice().sort(function() { return Math.random() - 0.5; });
+            var picked = shuffled.slice(0, 4);
             var allSongs = [];
 
-            for (var q = 0; q < 2; q++) {
+            for (var i = 0; i < picked.length; i++) {
                 try {
-                    var d = await window.pget('/search?q=' + encodeURIComponent(shuffledQueries[q]) + '&filter=videos');
+                    var artist = picked[i];
+                    var d = await window.pget('/search?q=' + encodeURIComponent(artist + ' official video') + '&filter=videos');
                     var items = (d.items || []).filter(function(v) { return v.url && v.title; });
-                    items.forEach(function(v) {
-                        // Filter to only real songs
-                        if (isRealSong(v.title)) {
-                            allSongs.push(v);
-                        }
-                    });
+                    // Take 5 songs per artist
+                    var filtered = items.filter(function(v) { return isRealSong(v.title); }).slice(0, 5);
+                    filtered.forEach(function(v) { allSongs.push(v); });
                 } catch(e) {}
             }
 
@@ -1661,10 +1649,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var unique = [];
             allSongs.forEach(function(v) {
                 var vid = (v.url || '').replace('/watch?v=', '');
-                if (!seen[vid]) {
-                    seen[vid] = true;
-                    unique.push(v);
-                }
+                if (!seen[vid]) { seen[vid] = true; unique.push(v); }
             });
 
             if (unique.length === 0) {
@@ -1672,13 +1657,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Take the top 20 and shuffle slightly
-            var final = unique.slice(0, 20);
+            // Shuffle and take 20
+            var final = unique.sort(function() { return Math.random() - 0.5; }).slice(0, 20);
 
             scroll.innerHTML = '';
             final.forEach(function(v, idx) {
                 var rank = idx + 1;
-
                 var card = document.createElement('div');
                 card.className = 'trending-card';
                 card.innerHTML = `
@@ -1724,7 +1708,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var homeTab = document.getElementById('tab-home');
         if (!homeTab) return false;
         if (document.getElementById('trendingSection')) return true;
-
         var section = document.createElement('div');
         section.id = 'trendingSection';
         section.innerHTML = `
@@ -1735,12 +1718,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div id="trendingScroll"></div>
         `;
-
-        if (homeTab.firstChild) {
-            homeTab.insertBefore(section, homeTab.firstChild);
-        } else {
-            homeTab.appendChild(section);
-        }
+        if (homeTab.firstChild) homeTab.insertBefore(section, homeTab.firstChild);
+        else homeTab.appendChild(section);
         return true;
     }
 
