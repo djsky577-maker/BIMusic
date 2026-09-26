@@ -1745,3 +1745,295 @@ document.addEventListener('DOMContentLoaded', function() {
     window.refreshTrending = function() { loadTrending(); };
 })();
 // END TRENDING SECTION
+
+
+// ARTIST RADIO
+(function() {
+    var radioArtist = null;
+    var radioPool = [];
+    var radioShown = false;
+    var radioInterval = null;
+
+    function injectStyle() {
+        if (document.getElementById('radioStyle')) return;
+        var style = document.createElement('style');
+        style.id = 'radioStyle';
+        style.textContent = `
+            #artistRadioBtn {
+                display: none;
+                width: 90%;
+                max-width: 320px;
+                margin: 14px auto 10px auto;
+                padding: 14px 20px;
+                background: linear-gradient(135deg, rgba(0, 224, 208, 0.25), rgba(0, 143, 133, 0.15));
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1.5px solid rgba(0, 224, 208, 0.6);
+                border-radius: 14px;
+                color: #00e0d0;
+                font-size: 14px;
+                font-weight: 900;
+                letter-spacing: 1.2px;
+                text-transform: uppercase;
+                cursor: pointer;
+                box-shadow: 0 8px 25px rgba(0, 224, 208, 0.3), inset 0 0 20px rgba(0, 224, 208, 0.1);
+                transition: all 0.3s ease;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                position: relative;
+                overflow: hidden;
+            }
+            #artistRadioBtn::before {
+                content: '';
+                position: absolute;
+                top: 50%; left: 50%;
+                width: 150%; height: 150%;
+                background: radial-gradient(circle, rgba(0, 224, 208, 0.3) 0%, transparent 70%);
+                transform: translate(-50%, -50%);
+                animation: radioPulse 2s ease-in-out infinite;
+                pointer-events: none;
+            }
+            @keyframes radioPulse {
+                0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+                50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.2; }
+            }
+            #artistRadioBtn:active {
+                transform: scale(0.97);
+                box-shadow: 0 4px 15px rgba(0, 224, 208, 0.6), inset 0 0 30px rgba(0, 224, 208, 0.3);
+            }
+            #artistRadioBtn svg {
+                width: 20px; height: 20px;
+                fill: #00e0d0;
+                filter: drop-shadow(0 0 8px rgba(0, 224, 208, 0.8));
+                z-index: 2;
+            }
+            #artistRadioBtn span { z-index: 2; }
+
+            #radioBadge {
+                display: none;
+                position: fixed;
+                top: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 999998;
+                padding: 8px 16px;
+                background: rgba(0, 20, 20, 0.9);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(0, 224, 208, 0.6);
+                border-radius: 25px;
+                color: #00e0d0;
+                font-size: 12px;
+                font-weight: bold;
+                letter-spacing: 1px;
+                box-shadow: 0 4px 20px rgba(0, 224, 208, 0.5);
+                animation: radioSlideIn 0.5s ease-out;
+                white-space: nowrap;
+                max-width: 90vw;
+                overflow: hidden;
+            }
+            #radioBadge.show { display: flex; align-items: center; gap: 8px; }
+            @keyframes radioSlideIn {
+                from { transform: translate(-50%, -30px); opacity: 0; }
+                to { transform: translate(-50%, 0); opacity: 1; }
+            }
+            #radioBadge .radio-pulse {
+                width: 8px; height: 8px;
+                border-radius: 50%;
+                background: #ff4d4d;
+                box-shadow: 0 0 10px rgba(255, 77, 77, 0.8);
+                animation: redPulse 1s ease-in-out infinite;
+                flex-shrink: 0;
+            }
+            @keyframes redPulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.3; }
+            }
+            #radioBadge #radioBadgeText {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 180px;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function injectElements() {
+        if (!document.getElementById('artistRadioBtn')) {
+            var btn = document.createElement('button');
+            btn.id = 'artistRadioBtn';
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3.24 6.15C2.51 6.43 2 7.17 2 8v12a2 2 0 002 2h16a2 2 0 002-2V8c0-.83-.51-1.57-1.24-1.85L12 1 3.24 6.15zM12 4.15l6.16 3.4-5.5 3.03L7 7.55l5-3.4z"/></svg><span>▶ Play Artist Radio</span>';
+            document.body.appendChild(btn);
+            btn.onclick = startRadio;
+        }
+        if (!document.getElementById('radioBadge')) {
+            var badge = document.createElement('div');
+            badge.id = 'radioBadge';
+            badge.innerHTML = '<div class="radio-pulse"></div><span id="radioBadgeText">Radio ON</span><button id="radioStopBtn" style="background:none;border:none;color:#ff4d4d;font-weight:bold;cursor:pointer;margin-left:5px;font-size:14px;">✕</button>';
+            document.body.appendChild(badge);
+            document.getElementById('radioStopBtn').onclick = function(e) {
+                e.stopPropagation();
+                stopRadio();
+            };
+        }
+    }
+
+    async function startRadio() {
+        if (!window.currentArtist || !window.currentArtist.name) return;
+        radioArtist = window.currentArtist.name;
+
+        var badge = document.getElementById('radioBadge');
+        var badgeText = document.getElementById('radioBadgeText');
+        if (badge && badgeText) {
+            badgeText.textContent = '📻 ' + radioArtist + ' Radio';
+            badge.classList.add('show');
+        }
+
+        radioPool = [];
+        radioShown = true;
+
+        // Fetch initial batch
+        await fetchMoreRadioSongs();
+        await fetchMoreRadioSongs(); // Fetch twice for a fuller initial queue
+
+        if (radioPool.length > 0) {
+            window.ytResults = radioPool.map(function(x) {
+                return {
+                    id: { videoId: x.id },
+                    snippet: {
+                        title: x.title,
+                        channelTitle: x.channelTitle || radioArtist,
+                        thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                    }
+                };
+            });
+            window.playQueue = window.ytResults;
+
+            // Play first song
+            if (typeof window.playYoutube === 'function') window.playYoutube(0);
+
+            // Open the full player immediately
+            setTimeout(function() {
+                if (typeof window.openFullPlayer === 'function') window.openFullPlayer();
+            }, 400);
+
+            // Auto-extend as queue runs low
+            if (radioInterval) clearInterval(radioInterval);
+            radioInterval = setInterval(function() {
+                if (!radioShown) { clearInterval(radioInterval); return; }
+                if (window.currentSource === 'youtube' && window.ytResults &&
+                    window.currentIndex >= window.ytResults.length - 3) {
+                    extendRadio();
+                }
+            }, 3000);
+        }
+    }
+
+    async function fetchMoreRadioSongs() {
+        var artist = radioArtist;
+        if (!artist) return;
+
+        var suffixes = [
+            'official video', 'ft', 'feat', 'hits', 'best songs',
+            'top songs', 'official audio', 'music video', 'new song',
+            'audio'
+        ];
+        var suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+        var query = artist + ' ' + suffix;
+
+        try {
+            var d = await window.pget('/search?q=' + encodeURIComponent(query) + '&filter=videos');
+            var items = (d.items || []).filter(function(v) { return v.url && v.title; });
+
+            items.forEach(function(v) {
+                var vid = (v.url || '').replace('/watch?v=', '');
+                if (radioPool.some(function(x) { return x.id === vid; })) return;
+                var t = (v.title || '').toLowerCase();
+                // Skip junk
+                if (t.indexOf('nonstop') >= 0 || t.indexOf('non stop') >= 0) return;
+                if (t.indexOf('1 hour') >= 0 || t.indexOf('2 hour') >= 0) return;
+                if (t.indexOf('mix') >= 0 || t.indexOf('playlist') >= 0) return;
+                if (t.indexOf('compilation') >= 0 || t.indexOf('jukebox') >= 0) return;
+                if (t.indexOf('hour loop') >= 0 || t.indexOf('megamix') >= 0) return;
+
+                radioPool.push({
+                    id: vid,
+                    title: v.title,
+                    channelTitle: v.uploaderName || artist,
+                    thumbnail: v.thumbnail || ''
+                });
+            });
+        } catch(e) {}
+    }
+
+    async function extendRadio() {
+        if (!radioArtist) return;
+        var oldLen = radioPool.length;
+        await fetchMoreRadioSongs();
+        var newLen = radioPool.length;
+
+        if (newLen > oldLen && window.ytResults) {
+            var added = radioPool.slice(oldLen);
+            added.forEach(function(x) {
+                window.ytResults.push({
+                    id: { videoId: x.id },
+                    snippet: {
+                        title: x.title,
+                        channelTitle: x.channelTitle,
+                        thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                    }
+                });
+            });
+            window.playQueue = window.ytResults;
+        }
+    }
+
+    function stopRadio() {
+        radioShown = false;
+        radioArtist = null;
+        radioPool = [];
+        if (radioInterval) { clearInterval(radioInterval); radioInterval = null; }
+        var badge = document.getElementById('radioBadge');
+        if (badge) badge.classList.remove('show');
+    }
+
+    function watchArtistModal() {
+        setInterval(function() {
+            var artistModal = document.getElementById('artistModal');
+            var btn = document.getElementById('artistRadioBtn');
+            if (!btn) return;
+
+            if (artistModal && artistModal.classList.contains('active')) {
+                btn.style.display = 'flex';
+                var span = btn.querySelector('span');
+                if (span) {
+                    if (radioShown && radioArtist === (window.currentArtist && window.currentArtist.name)) {
+                        span.textContent = '📻 Radio Playing...';
+                    } else {
+                        span.textContent = '▶ Play Artist Radio';
+                    }
+                }
+            } else {
+                btn.style.display = 'none';
+            }
+        }, 500);
+    }
+
+    function init() {
+        injectStyle();
+        injectElements();
+        watchArtistModal();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    window.startArtistRadio = startRadio;
+    window.stopArtistRadio = stopRadio;
+})();
+// END ARTIST RADIO
