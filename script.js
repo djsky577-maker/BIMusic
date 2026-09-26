@@ -2047,37 +2047,51 @@ document.addEventListener('DOMContentLoaded', function() {
 // END ARTIST RADIO
 
 
+
+
+
 // FORCE YT INIT
 (function() {
+    var initDone = false;
+    var initAttempts = 0;
+    var MAX_ATTEMPTS = 600; // 30 seconds max at 50ms
+
     function forceInitYouTube() {
-        // Wait until the youtube-player div exists
+        if (initDone) return;
+        initAttempts++;
+
+        if (initAttempts > MAX_ATTEMPTS) {
+            console.log('[YT Init] Gave up after too many attempts.');
+            return;
+        }
+
         var ytDiv = document.getElementById('youtube-player');
         if (!ytDiv) {
-            console.log('[YT Init] Waiting for youtube-player div...');
-            setTimeout(forceInitYouTube, 500);
+            setTimeout(forceInitYouTube, 50);
             return;
         }
 
-        // Wait until YT API is loaded
         if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
-            console.log('[YT Init] Waiting for YT API...');
-            setTimeout(forceInitYouTube, 500);
+            setTimeout(forceInitYouTube, 50);
             return;
         }
 
-        // If a player already exists, don't re-create it
+        // Already have a working player
         if (window.ytPlayer && typeof window.ytPlayer.loadVideoById === 'function') {
-            console.log('[YT Init] Player already exists.');
-            return;
+            try {
+                var state = window.ytPlayer.getPlayerState();
+                if (state !== -1 && state !== undefined) {
+                    initDone = true;
+                    window.ytReady = true;
+                    console.log('[YT Init] Existing player ready.');
+                    return;
+                }
+            } catch(e) {}
         }
-
-        console.log('[YT Init] Creating YT player now...');
-
-        // Clear any old content
-        ytDiv.innerHTML = '';
 
         // Create the player
         try {
+            ytDiv.innerHTML = '';
             window.ytPlayer = new YT.Player('youtube-player', {
                 height: '100%',
                 width: '100%',
@@ -2092,14 +2106,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 events: {
                     'onReady': function() {
+                        initDone = true;
                         window.ytReady = true;
-                        console.log('[YT Init] Player is ready!');
+                        console.log('[YT Init] Player ready after ' + initAttempts + ' attempts (' + (initAttempts * 50) + 'ms)');
                     },
                     'onStateChange': function(e) {
                         if (e.data === 1) { window.isPlaying = true; if (typeof updateAllIcons === 'function') updateAllIcons(); }
                         else if (e.data === 2) { window.isPlaying = false; if (typeof updateAllIcons === 'function') updateAllIcons(); }
                         else if (e.data === 0) {
-                            // Video ended - auto-shuffle
                             if (window.simPool && window.simPool.length > 0) {
                                 var ri = Math.floor(Math.random() * window.simPool.length);
                                 window.ytResults = window.simPool.map(function(x) {
@@ -2120,23 +2134,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     },
                     'onError': function(e) {
-                        console.log('[YT Init] Player error:', e.data);
+                        // Retry on error
+                        initDone = false;
+                        setTimeout(forceInitYouTube, 100);
                     }
                 }
             });
         } catch(err) {
-            console.log('[YT Init] Error creating player:', err);
-            setTimeout(forceInitYouTube, 1000);
+            // Retry fast
+            setTimeout(forceInitYouTube, 50);
         }
     }
 
-    // Start trying to init as soon as possible
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(forceInitYouTube, 1000);
-        });
-    } else {
-        setTimeout(forceInitYouTube, 1000);
-    }
+    // Kick off immediately - no waiting for DOMContentLoaded
+    forceInitYouTube();
 })();
 // END FORCE YT INIT
