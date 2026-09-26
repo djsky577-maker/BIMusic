@@ -687,7 +687,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!btn) return;
     var isInApp = /wv/.test(navigator.userAgent) || window.location.protocol === 'file:' || (window.Android && typeof window.Android !== 'undefined');
     if (isInApp) {
-        btn.style.display = 'none';
+        btn.classList.remove('show'); btn.style.setProperty('display', 'none', 'important');
     } else {
         btn.style.setProperty('display', 'flex', 'important');
     }
@@ -1761,28 +1761,31 @@ document.addEventListener('DOMContentLoaded', function() {
         style.textContent = `
             #artistRadioBtn {
                 display: none !important;
-                width: 90%;
-                max-width: 320px;
-                margin: 14px auto 10px auto;
-                padding: 14px 20px;
-                background: linear-gradient(135deg, rgba(0, 224, 208, 0.25), rgba(0, 143, 133, 0.15));
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                border: 1.5px solid rgba(0, 224, 208, 0.6);
-                border-radius: 14px;
-                color: #00e0d0;
-                font-size: 14px;
-                font-weight: 900;
-                letter-spacing: 1.2px;
-                text-transform: uppercase;
-                cursor: pointer;
-                box-shadow: 0 8px 25px rgba(0, 224, 208, 0.3), inset 0 0 20px rgba(0, 224, 208, 0.1);
-                transition: all 0.3s ease;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                position: relative;
-                overflow: hidden;
+                width: 90% !important;
+                max-width: 320px !important;
+                margin: 14px auto 10px auto !important;
+                padding: 14px 20px !important;
+                background: linear-gradient(135deg, rgba(0, 224, 208, 0.25), rgba(0, 143, 133, 0.15)) !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+                border: 1.5px solid rgba(0, 224, 208, 0.8) !important;
+                border-radius: 14px !important;
+                color: #00e0d0 !important;
+                font-size: 14px !important;
+                font-weight: 900 !important;
+                letter-spacing: 1.2px !important;
+                text-transform: uppercase !important;
+                cursor: pointer !important;
+                box-shadow: 0 8px 25px rgba(0, 224, 208, 0.5) !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 10px !important;
+                position: relative !important;
+                z-index: 999999 !important;
+                overflow: hidden !important;
+            }
+            #artistRadioBtn.show {
+                display: flex !important;
             }
             #artistRadioBtn::before {
                 content: '';
@@ -2016,7 +2019,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             } else {
-                btn.style.display = 'none';
+                btn.classList.remove('show'); btn.style.setProperty('display', 'none', 'important');
             }
         }, 500);
     }
