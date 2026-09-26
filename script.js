@@ -1407,3 +1407,294 @@ document.addEventListener('DOMContentLoaded', function() {
     window.closeLyrics = closeLyrics;
 })();
 // END LYRICS FEATURE
+
+
+// TRENDING SECTION
+(function() {
+    function injectStyle() {
+        if (document.getElementById('trendingStyle')) return;
+        var style = document.createElement('style');
+        style.id = 'trendingStyle';
+        style.textContent = `
+            #trendingSection {
+                margin: 20px 0 10px 0;
+                padding: 0 15px;
+            }
+            #trendingHeader {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+            #trendingHeader .trending-fire {
+                font-size: 20px;
+                animation: fireFlicker 1.2s ease-in-out infinite alternate;
+            }
+            @keyframes fireFlicker {
+                0% { transform: scale(1) rotate(-3deg); }
+                100% { transform: scale(1.15) rotate(3deg); }
+            }
+            #trendingHeader .trending-label {
+                font-size: 18px;
+                font-weight: 900;
+                color: #fff;
+                letter-spacing: 0.5px;
+            }
+            #trendingHeader .trending-sub {
+                font-size: 11px;
+                color: #00e0d0;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                margin-left: auto;
+                font-weight: bold;
+                text-shadow: 0 0 10px rgba(0, 224, 208, 0.5);
+            }
+            #trendingScroll {
+                display: flex;
+                gap: 12px;
+                overflow-x: auto;
+                padding: 4px 0 12px 0;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            #trendingScroll::-webkit-scrollbar { display: none; }
+
+            .trending-card {
+                flex: 0 0 auto;
+                width: 150px;
+                scroll-snap-align: start;
+                background: rgba(20, 20, 20, 0.7);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border: 1px solid rgba(0, 224, 208, 0.2);
+                border-radius: 14px;
+                overflow: hidden;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                position: relative;
+            }
+            .trending-card:active {
+                transform: scale(0.95);
+                border-color: #00e0d0;
+                box-shadow: 0 8px 25px rgba(0,224,208,0.3);
+            }
+            .trending-thumb-wrap {
+                position: relative;
+                width: 100%;
+                height: 150px;
+                overflow: hidden;
+            }
+            .trending-thumb-wrap img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+            .trending-rank {
+                position: absolute;
+                top: 8px;
+                left: 8px;
+                background: linear-gradient(135deg, #00e0d0, #008f85);
+                color: #000;
+                font-weight: 900;
+                font-size: 12px;
+                padding: 3px 8px;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+                z-index: 2;
+            }
+            .trending-play-overlay {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 50%);
+                display: flex;
+                align-items: flex-end;
+                justify-content: flex-end;
+                padding: 8px;
+            }
+            .trending-play-icon {
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                background: #00e0d0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 10px rgba(0,224,208,0.6);
+            }
+            .trending-play-icon svg {
+                width: 16px;
+                height: 16px;
+                fill: #000;
+                margin-left: 2px;
+            }
+            .trending-info {
+                padding: 8px 10px 10px 10px;
+            }
+            .trending-title {
+                color: #fff;
+                font-size: 12px;
+                font-weight: bold;
+                line-height: 1.25;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                margin-bottom: 4px;
+            }
+            .trending-artist {
+                color: #888;
+                font-size: 10px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .trending-skeleton {
+                flex: 0 0 auto;
+                width: 150px;
+                height: 220px;
+                background: rgba(30, 30, 30, 0.6);
+                border-radius: 14px;
+                animation: skeletonPulse 1.5s ease-in-out infinite;
+            }
+            @keyframes skeletonPulse {
+                0%, 100% { opacity: 0.5; }
+                50% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    async function loadTrending() {
+        var scroll = document.getElementById('trendingScroll');
+        if (!scroll) return;
+
+        // Show 4 skeleton placeholders while loading
+        scroll.innerHTML = '';
+        for (var s = 0; s < 4; s++) {
+            var skel = document.createElement('div');
+            skel.className = 'trending-skeleton';
+            scroll.appendChild(skel);
+        }
+
+        try {
+            // Fetch trending music videos
+            var queries = ['trending music 2025', 'top hits 2025', 'trending songs 2025', 'viral music 2025'];
+            var query = queries[Math.floor(Math.random() * queries.length)];
+
+            var d = await window.pget('/search?q=' + encodeURIComponent(query) + '&filter=videos');
+            var items = (d.items || []).filter(function(v) { return v.url && v.title; }).slice(0, 20);
+
+            if (items.length === 0) {
+                scroll.innerHTML = '<div style="color:#888;font-style:italic;padding:20px;">No trending songs right now.</div>';
+                return;
+            }
+
+            scroll.innerHTML = '';
+            items.forEach(function(v, idx) {
+                var vid = (v.url || '').replace('/watch?v=', '');
+                var rank = idx + 1;
+
+                var card = document.createElement('div');
+                card.className = 'trending-card';
+                card.innerHTML = `
+                    <div class="trending-thumb-wrap">
+                        <div class="trending-rank">#${rank}</div>
+                        <img src="${v.thumbnail || ''}" onerror="this.style.opacity='0.3'">
+                        <div class="trending-play-overlay">
+                            <div class="trending-play-icon">
+                                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trending-info">
+                        <div class="trending-title">${(v.title || '').replace(/</g, '&lt;')}</div>
+                        <div class="trending-artist">${(v.uploaderName || '').replace(/</g, '&lt;')}</div>
+                    </div>
+                `;
+
+                // Play handler
+                card.onclick = function() {
+                    var newQueue = items.map(function(x) {
+                        return {
+                            id: { videoId: (x.url || '').replace('/watch?v=', '') },
+                            snippet: {
+                                title: x.title,
+                                channelTitle: x.uploaderName || '',
+                                thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                            }
+                        };
+                    });
+                    window.ytResults = newQueue;
+                    window.playQueue = newQueue;
+                    if (typeof window.playYoutube === 'function') window.playYoutube(idx);
+                };
+
+                scroll.appendChild(card);
+            });
+        } catch (err) {
+            scroll.innerHTML = '<div style="color:#ff5555;padding:20px;">⚠️ Could not load trending songs.</div>';
+        }
+    }
+
+    function injectSection() {
+        // Find the home tab
+        var homeTab = document.getElementById('tab-home');
+        if (!homeTab) {
+            console.log('[Trending] Home tab not found yet, will retry...');
+            return false;
+        }
+        // Don't inject twice
+        if (document.getElementById('trendingSection')) return true;
+
+        var section = document.createElement('div');
+        section.id = 'trendingSection';
+        section.innerHTML = `
+            <div id="trendingHeader">
+                <span class="trending-fire">🔥</span>
+                <span class="trending-label">Trending Now</span>
+                <span class="trending-sub">Live</span>
+            </div>
+            <div id="trendingScroll"></div>
+        `;
+
+        // Insert at the very top of the home tab
+        if (homeTab.firstChild) {
+            homeTab.insertBefore(section, homeTab.firstChild);
+        } else {
+            homeTab.appendChild(section);
+        }
+        return true;
+    }
+
+    function init() {
+        injectStyle();
+
+        // Wait for the home tab to exist and inject the section
+        var tries = 0;
+        var iv = setInterval(function() {
+            tries++;
+            if (injectSection()) {
+                clearInterval(iv);
+                loadTrending();
+            }
+            if (tries > 40) clearInterval(iv); // stop after 20 seconds
+        }, 500);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    // Expose a manual refresh function
+    window.refreshTrending = function() {
+        loadTrending();
+    };
+})();
+// END TRENDING SECTION
