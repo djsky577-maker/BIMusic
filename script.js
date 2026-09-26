@@ -903,7 +903,179 @@ document.addEventListener('DOMContentLoaded', function() {
 // END UPDATE BTN
 
 
+// WELCOME NOTE
+(function() {
+    function initWelcomeNote() {
+        // Only show ONCE per app restart (uses sessionStorage, so it resets when app closes)
+        if (sessionStorage.getItem('biWelcomeShown') === 'true') return;
 
+        // Inject CSS
+        if (!document.getElementById('welcomeNoteStyle')) {
+            var style = document.createElement('style');
+            style.id = 'welcomeNoteStyle';
+            style.textContent = `
+                #welcomeOverlay {
+                    position: fixed;
+                    top: 0; left: 0;
+                    width: 100vw; height: 100vh;
+                    z-index: 9999999;
+                    background: rgba(0, 0, 0, 0.75);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                    box-sizing: border-box;
+                    opacity: 0;
+                    animation: welcomeFadeIn 0.5s ease forwards;
+                }
+                @keyframes welcomeFadeIn {
+                    to { opacity: 1; }
+                }
+                @keyframes welcomeFadeOut {
+                    to { opacity: 0; }
+                }
+                #welcomePanel {
+                    width: 100%;
+                    max-width: 380px;
+                    background: linear-gradient(135deg, rgba(0, 224, 208, 0.15), rgba(0, 143, 133, 0.08));
+                    backdrop-filter: blur(30px);
+                    -webkit-backdrop-filter: blur(30px);
+                    border: 1px solid rgba(0, 224, 208, 0.4);
+                    border-radius: 24px;
+                    padding: 28px 22px 22px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 40px rgba(0, 224, 208, 0.2);
+                    transform: translateY(30px) scale(0.95);
+                    opacity: 0;
+                    animation: welcomePanelIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                }
+                @keyframes welcomePanelIn {
+                    to { transform: translateY(0) scale(1); opacity: 1; }
+                }
+                .welcome-logo {
+                    text-align: center;
+                    font-size: 32px;
+                    font-weight: 900;
+                    color: #00e0d0;
+                    text-shadow: 0 0 25px rgba(0, 224, 208, 0.8);
+                    margin-bottom: 6px;
+                    letter-spacing: 1px;
+                }
+                .welcome-sub {
+                    text-align: center;
+                    font-size: 12px;
+                    color: #aaa;
+                    margin-bottom: 22px;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                }
+                .welcome-tip {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 12px;
+                    background: rgba(0, 0, 0, 0.35);
+                    border: 1px solid rgba(0, 224, 208, 0.15);
+                    border-radius: 14px;
+                    padding: 12px 14px;
+                    margin-bottom: 10px;
+                }
+                .welcome-tip-icon {
+                    font-size: 22px;
+                    flex-shrink: 0;
+                    line-height: 1;
+                }
+                .welcome-tip-text {
+                    flex: 1;
+                    color: #e0e0e0;
+                    font-size: 13px;
+                    line-height: 1.5;
+                }
+                .welcome-tip-text b {
+                    color: #00e0d0;
+                }
+                #welcomeDismissBtn {
+                    width: 100%;
+                    margin-top: 18px;
+                    padding: 16px;
+                    font-size: 15px;
+                    font-weight: 900;
+                    color: #000;
+                    background: linear-gradient(135deg, #00e0d0, #008f85);
+                    border: none;
+                    border-radius: 14px;
+                    cursor: pointer;
+                    letter-spacing: 0.5px;
+                    box-shadow: 0 8px 25px rgba(0, 224, 208, 0.5);
+                    animation: bounceBtn 1.4s ease-in-out infinite;
+                    transform-origin: center;
+                }
+                #welcomeDismissBtn:active {
+                    transform: scale(0.95);
+                }
+                @keyframes bounceBtn {
+                    0%   { transform: scale(1);    box-shadow: 0 8px 25px rgba(0, 224, 208, 0.5); }
+                    50%  { transform: scale(1.08); box-shadow: 0 12px 35px rgba(0, 224, 208, 0.8); }
+                    100% { transform: scale(1);    box-shadow: 0 8px 25px rgba(0, 224, 208, 0.5); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Create the overlay
+        var overlay = document.createElement('div');
+        overlay.id = 'welcomeOverlay';
+        overlay.innerHTML = `
+            <div id="welcomePanel">
+                <div class="welcome-logo">B.I MUSIC</div>
+                <div class="welcome-sub">Welcome to the vibe</div>
+
+                <div class="welcome-tip">
+                    <div class="welcome-tip-icon">⬇️</div>
+                    <div class="welcome-tip-text">Tap the <b>Download</b> button on any song. The link is copied automatically — just paste it on the page that opens.</div>
+                </div>
+
+                <div class="welcome-tip">
+                    <div class="welcome-tip-icon">◀️</div>
+                    <div class="welcome-tip-text">Use the black <b>Back Button</b> at the bottom-right to return to the previous page. It works everywhere.</div>
+                </div>
+
+                <div class="welcome-tip">
+                    <div class="welcome-tip-icon">💚</div>
+                    <div class="welcome-tip-text">Enjoying <b>B.I Music</b>? Share it with your friends and spread the vibe!</div>
+                </div>
+
+                <button id="welcomeDismissBtn">🎧 GOT IT — LET'S GO</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // Mark as shown (per session)
+        sessionStorage.setItem('biWelcomeShown', 'true');
+
+        // Dismiss handler
+        var dismissBtn = document.getElementById('welcomeDismissBtn');
+        dismissBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            overlay.style.animation = 'welcomeFadeOut 0.4s ease forwards';
+            setTimeout(function() {
+                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            }, 400);
+        };
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initWelcomeNote, 500);
+        });
+    } else {
+        setTimeout(initWelcomeNote, 500);
+    }
+})();
+// END WELCOME NOTE
 
 
 
@@ -2302,315 +2474,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 })();
 // END COMING SOON DOWNLOAD
-
-
-// FIX RECENTLY PLAYED
-(function() {
-    // Wait for the page to be ready
-    function initFix() {
-        // Override the renderRecentlyPlayed function globally
-        window.renderRecentlyPlayed = function() {
-            var c = document.getElementById('recentlyPlayed');
-            if (!c) return;
-
-            // 1. First, try to get songs from the offline cache (YouTube songs)
-            var cachedSongs = [];
-            try {
-                if (window.getCachedSongs) cachedSongs = window.getCachedSongs();
-                else {
-                    var raw = localStorage.getItem('bi_offline_cache');
-                    cachedSongs = raw ? JSON.parse(raw) : [];
-                }
-            } catch(e) {}
-
-            // 2. Also get local DB songs (if any)
-            var dbSongs = [];
-            try {
-                if (window.songs && window.songs.length > 0) dbSongs = window.songs;
-            } catch(e) {}
-
-            // 3. Combine them: cached songs first, then DB songs
-            var combined = [];
-            var seenIds = {};
-
-            // Add cached songs (they have .id, .title, .artist, .thumbnail)
-            cachedSongs.forEach(function(s) {
-                if (!s.id || seenIds[s.id]) return;
-                seenIds[s.id] = true;
-                combined.push({
-                    id: s.id,
-                    title: s.title || 'Unknown',
-                    artist: s.artist || 'Unknown',
-                    thumbnail: s.thumbnail || '',
-                    source: 'youtube'
-                });
-            });
-
-            // Add DB songs (they have .id, .title, .artist_name, .cover_art_url)
-            dbSongs.forEach(function(s) {
-                if (!s.id || seenIds[s.id]) return;
-                seenIds[s.id] = true;
-                combined.push({
-                    id: s.id,
-                    title: s.title || 'Unknown',
-                    artist: s.artist_name || 'Unknown',
-                    thumbnail: s.cover_art_url || '',
-                    source: 'db'
-                });
-            });
-
-            // 4. Render them
-            if (combined.length === 0) {
-                c.innerHTML = '<p style="color:#666;font-size:.75rem;padding:10px 0;">🎧 Play a song to see it here.</p>';
-                return;
-            }
-
-            c.innerHTML = '';
-            combined.slice(0, 8).forEach(function(s) {
-                var el = document.createElement('div');
-                el.className = 'card';
-                el.onclick = function() {
-                    if (s.source === 'db') {
-                        // Play local DB song
-                        var idx = window.songs.findIndex(function(x) { return x.id === s.id; });
-                        if (idx >= 0 && typeof window.playDbSong === 'function') window.playDbSong(idx);
-                    } else {
-                        // Play YouTube song - build a mock ytResults
-                        var mock = {
-                            id: { videoId: s.id },
-                            snippet: {
-                                title: s.title,
-                                channelTitle: s.artist,
-                                thumbnails: {
-                                    default: { url: s.thumbnail },
-                                    high: { url: s.thumbnail }
-                                }
-                            }
-                        };
-                        window.ytResults = [mock];
-                        window.playQueue = window.ytResults;
-                        if (typeof window.playYoutube === 'function') window.playYoutube(0);
-                    }
-                };
-                el.innerHTML = '<div class="card-img"><img src="' + (s.thumbnail || 'https://via.placeholder.com/150') + '" onerror="this.src=\'https://via.placeholder.com/150\'"></div><div class="card-title">' + (s.title || 'Unknown').replace(/</g, '&lt;') + '</div><div class="card-sub">' + (s.artist || 'Unknown').replace(/</g, '&lt;') + '</div>';
-                c.appendChild(el);
-            });
-
-            console.log('[Recently Played] Rendered ' + combined.length + ' songs.');
-        };
-
-        // Call it once on load
-        window.renderRecentlyPlayed();
-
-        // Refresh every 4 seconds
-        setInterval(function() {
-            var c = document.getElementById('recentlyPlayed');
-            if (c) window.renderRecentlyPlayed();
-        }, 4000);
-
-        console.log('✅ Recently Played fixed - now shows YouTube + DB songs from cache.');
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(initFix, 2500);
-        });
-    } else {
-        setTimeout(initFix, 2500);
-    }
-})();
-// END FIX RECENTLY PLAYED
-
-
-// WELCOME VIBE
-(function() {
-    function injectStyle() {
-        if (document.getElementById('welcomeVibeStyle')) return;
-        var style = document.createElement('style');
-        style.id = 'welcomeVibeStyle';
-        style.textContent = `
-            #welcomeVibeOverlay {
-                position: fixed;
-                top: 0; left: 0;
-                width: 100vw; height: 100vh;
-                z-index: 99999999;
-                background: rgba(0, 0, 0, 0.8);
-                backdrop-filter: blur(25px);
-                -webkit-backdrop-filter: blur(25px);
-                display: none;
-                align-items: center;
-                justify-content: center;
-                padding: 16px;
-                box-sizing: border-box;
-                opacity: 0;
-                transition: opacity 0.4s ease;
-                overflow-y: auto;
-            }
-            #welcomeVibeOverlay.show {
-                display: flex;
-                opacity: 1;
-            }
-            #welcomeVibePanel {
-                width: 100%;
-                max-width: 400px;
-                background: linear-gradient(135deg, rgba(0, 224, 208, 0.15), rgba(0, 143, 133, 0.06));
-                backdrop-filter: blur(40px);
-                -webkit-backdrop-filter: blur(40px);
-                border: 1px solid rgba(0, 224, 208, 0.4);
-                border-radius: 26px;
-                padding: 26px 20px 22px;
-                box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 50px rgba(0, 224, 208, 0.15);
-                transform: translateY(30px) scale(0.95);
-                opacity: 0;
-                animation: welcomePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
-                max-height: 92vh;
-                overflow-y: auto;
-                box-sizing: border-box;
-            }
-            @keyframes welcomePop {
-                to { transform: translateY(0) scale(1); opacity: 1; }
-            }
-            .wv-logo {
-                text-align: center;
-                font-size: 30px;
-                font-weight: 900;
-                color: #00e0d0;
-                text-shadow: 0 0 30px rgba(0, 224, 208, 0.8);
-                letter-spacing: 1px;
-                margin-bottom: 4px;
-            }
-            .wv-tagline {
-                text-align: center;
-                font-size: 11px;
-                color: #00e0d0;
-                opacity: 0.8;
-                letter-spacing: 3px;
-                text-transform: uppercase;
-                margin-bottom: 22px;
-                font-weight: bold;
-            }
-            .wv-feature {
-                display: flex;
-                align-items: flex-start;
-                gap: 12px;
-                background: rgba(0, 0, 0, 0.35);
-                border: 1px solid rgba(0, 224, 208, 0.18);
-                border-radius: 14px;
-                padding: 12px 14px;
-                margin-bottom: 9px;
-                transition: all 0.2s ease;
-            }
-            .wv-feature:active {
-                background: rgba(0, 224, 208, 0.15);
-                border-color: rgba(0, 224, 208, 0.5);
-                transform: scale(0.98);
-            }
-            .wv-icon {
-                font-size: 22px;
-                flex-shrink: 0;
-                line-height: 1.2;
-                filter: drop-shadow(0 0 8px rgba(0, 224, 208, 0.5));
-            }
-            .wv-text {
-                flex: 1;
-                font-size: 13px;
-                line-height: 1.5;
-                color: #d0d0d0;
-            }
-            .wv-text b {
-                color: #00e0d0;
-                display: block;
-                font-size: 13.5px;
-                margin-bottom: 3px;
-                letter-spacing: 0.3px;
-            }
-            #welcomeVibeBtn {
-                width: 100%;
-                margin-top: 16px;
-                padding: 16px;
-                font-size: 15px;
-                font-weight: 900;
-                color: #000;
-                background: linear-gradient(135deg, #00e0d0, #008f85);
-                border: none;
-                border-radius: 14px;
-                cursor: pointer;
-                letter-spacing: 1.5px;
-                box-shadow: 0 10px 30px rgba(0, 224, 208, 0.5);
-                animation: vibePulse 1.6s ease-in-out infinite;
-                transform-origin: center;
-                text-transform: uppercase;
-            }
-            #welcomeVibeBtn:active { transform: scale(0.96); }
-            @keyframes vibePulse {
-                0%   { transform: scale(1);    box-shadow: 0 10px 30px rgba(0, 224, 208, 0.5); }
-                50%  { transform: scale(1.04); box-shadow: 0 14px 40px rgba(0, 224, 208, 0.9); }
-                100% { transform: scale(1);    box-shadow: 0 10px 30px rgba(0, 224, 208, 0.5); }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    function injectPanel() {
-        if (document.getElementById('welcomeVibeOverlay')) return;
-        var overlay = document.createElement('div');
-        overlay.id = 'welcomeVibeOverlay';
-        overlay.innerHTML = `
-            <div id="welcomeVibePanel">
-                <div class="wv-logo">B.I MUSIC</div>
-                <div class="wv-tagline">The Vibe Never Stops</div>
-
-                <div class="wv-feature">
-                    <div class="wv-icon">🔥</div>
-                    <div class="wv-text"><b>Trending Now</b>See what's hot right now — real songs by real artists, refreshed every time you open the app.</div>
-                </div>
-
-                <div class="wv-feature">
-                    <div class="wv-icon">📻</div>
-                    <div class="wv-text"><b>Artist Radio</b>Tap any artist → Play Artist Radio → endless music from them + similar artists. Never runs out.</div>
-                </div>
-
-                <div class="wv-feature">
-                    <div class="wv-icon">🎤</div>
-                    <div class="wv-text"><b>Lyrics</b>Tap the mic button in the player to find lyric videos for any song, instantly.</div>
-                </div>
-
-                <div class="wv-feature">
-                    <div class="wv-icon">🎧</div>
-                    <div class="wv-text"><b>Coming Soon — Downloads</b>We're working hard on this. For now, stream everything live, unlimited.</div>
-                </div>
-
-                <button id="welcomeVibeBtn">🔥 Enter The Vibe</button>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-
-        // Dismiss handler
-        document.getElementById('welcomeVibeBtn').onclick = function() {
-            overlay.style.opacity = '0';
-            setTimeout(function() {
-                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-            }, 400);
-        };
-    }
-
-    function showWelcome() {
-        injectStyle();
-        injectPanel();
-        var overlay = document.getElementById('welcomeVibeOverlay');
-        if (overlay) overlay.classList.add('show');
-    }
-
-    // Show once per session (sessionStorage resets when app fully closes)
-    if (!sessionStorage.getItem('biWelcomeVibeShown')) {
-        sessionStorage.setItem('biWelcomeVibeShown', 'true');
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(showWelcome, 800);
-            });
-        } else {
-            setTimeout(showWelcome, 800);
-        }
-    }
-})();
-// END WELCOME VIBE
