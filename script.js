@@ -1087,326 +1087,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-// LYRICS FEATURE
-(function() {
-    var PANEL_TOP_OFFSET = 380;
 
-    function injectStyle() {
-        if (document.getElementById('lyricsStyleV6')) return;
-        var style = document.createElement('style');
-        style.id = 'lyricsStyleV6';
-        style.textContent = `
-            #lyricsBtnV6 {
-                position: fixed;
-                bottom: 155px;
-                right: 15px;
-                z-index: 999997;
-                background: rgba(0, 224, 208, 0.15);
-                backdrop-filter: blur(15px);
-                -webkit-backdrop-filter: blur(15px);
-                border: 1px solid rgba(0, 224, 208, 0.5);
-                border-radius: 50%;
-                width: 52px;
-                height: 52px;
-                display: none;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: 0 4px 18px rgba(0,0,0,0.7), 0 0 20px rgba(0,224,208,0.3);
-                transition: all 0.2s ease;
-            }
-            #lyricsBtnV6:active { transform: scale(0.9); background: rgba(0,224,208,0.4); }
-            #lyricsBtnV6 svg { width: 26px; height: 26px; fill: #00e0d0; }
-            #lyricsBtnV6.show { display: flex; }
-
-            #lyricsPanelV6 {
-                position: fixed;
-                left: 0; right: 0; bottom: 0;
-                top: ${PANEL_TOP_OFFSET}px;
-                z-index: 9999996;
-                display: none;
-                flex-direction: column;
-                background: rgba(0, 0, 0, 0.7);
-                backdrop-filter: blur(30px) saturate(180%);
-                -webkit-backdrop-filter: blur(30px) saturate(180%);
-                border-top: 1px solid rgba(0, 224, 208, 0.45);
-                box-shadow: 0 -8px 40px rgba(0,0,0,0.8), 0 0 30px rgba(0,224,208,0.15);
-                opacity: 0;
-                transform: translateY(20px);
-                transition: opacity 0.35s ease, transform 0.35s ease;
-                overflow: hidden;
-            }
-            #lyricsPanelV6.show { display: flex; opacity: 1; transform: translateY(0); }
-
-            #lyricsHeaderV6 {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 14px 20px 12px 20px;
-                z-index: 3;
-                position: relative;
-            }
-            #lyricsTitleV6 {
-                color: #00e0d0;
-                font-size: 13px;
-                font-weight: bold;
-                letter-spacing: 1px;
-                text-transform: uppercase;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                text-shadow: 0 0 15px rgba(0,224,208,0.6);
-                flex: 1;
-                margin-right: 10px;
-            }
-            #lyricsCloseV6 {
-                width: 34px; height: 34px;
-                border-radius: 50%;
-                background: rgba(0,0,0,0.5);
-                border: 1px solid rgba(255,255,255,0.2);
-                color: #fff;
-                display: flex; align-items: center; justify-content: center;
-                font-size: 16px;
-                cursor: pointer;
-                flex-shrink: 0;
-            }
-            #lyricsCloseV6:active { background: rgba(0,224,208,0.35); }
-
-            #lyricsBodyV6 {
-                flex: 1;
-                overflow-y: auto;
-                padding: 8px 16px 20px 16px;
-                -webkit-overflow-scrolling: touch;
-            }
-            #lyricsBodyV6::-webkit-scrollbar { display: none; }
-
-            .ly-video-row {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 8px;
-                margin-bottom: 8px;
-                background: rgba(20, 20, 20, 0.7);
-                border: 1px solid rgba(0, 224, 208, 0.15);
-                border-radius: 10px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            .ly-video-row:active {
-                background: rgba(0, 224, 208, 0.2);
-                border-color: #00e0d0;
-                transform: scale(0.98);
-            }
-            .ly-video-row img {
-                width: 80px;
-                height: 60px;
-                border-radius: 6px;
-                object-fit: cover;
-                flex-shrink: 0;
-            }
-            .ly-video-info {
-                flex: 1;
-                overflow: hidden;
-            }
-            .ly-video-title {
-                font-size: 12px;
-                color: #fff;
-                font-weight: bold;
-                line-height: 1.3;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-            }
-            .ly-video-channel {
-                font-size: 10px;
-                color: #888;
-                margin-top: 3px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .ly-video-row .ly-play-icon {
-                width: 28px;
-                height: 28px;
-                border-radius: 50%;
-                background: #00e0d0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-            }
-            .ly-video-row .ly-play-icon svg {
-                width: 14px;
-                height: 14px;
-                fill: #000;
-                margin-left: 1px;
-            }
-            #lyricsBodyV6 .ly-msg {
-                color: #aaa;
-                font-style: italic;
-                font-size: 14px;
-                text-align: center;
-                padding: 40px 20px;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    function injectElements() {
-        if (!document.getElementById('lyricsBtnV6')) {
-            var btn = document.createElement('div');
-            btn.id = 'lyricsBtnV6';
-            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg>';
-            document.body.appendChild(btn);
-            btn.onclick = function(e) {
-                e.preventDefault(); e.stopPropagation();
-                openLyrics();
-            };
-        }
-        if (!document.getElementById('lyricsPanelV6')) {
-            var panel = document.createElement('div');
-            panel.id = 'lyricsPanelV6';
-            panel.innerHTML = `
-                <div id="lyricsHeaderV6">
-                    <div id="lyricsTitleV6">Lyrics Videos</div>
-                    <div id="lyricsCloseV6">✕</div>
-                </div>
-                <div id="lyricsBodyV6">
-                    <div class="ly-msg">Loading lyric videos...</div>
-                </div>
-            `;
-            document.body.appendChild(panel);
-            document.getElementById('lyricsCloseV6').onclick = function(e) {
-                e.stopPropagation();
-                closeLyrics();
-            };
-        }
-    }
-
-    function openLyrics() {
-        var panel = document.getElementById('lyricsPanelV6');
-        if (!panel) return;
-        panel.classList.add('show');
-        searchLyricVideos();
-    }
-    function closeLyrics() {
-        var panel = document.getElementById('lyricsPanelV6');
-        if (panel) panel.classList.remove('show');
-    }
-
-    async function searchLyricVideos() {
-        var body = document.getElementById('lyricsBodyV6');
-        var titleEl = document.getElementById('lyricsTitleV6');
-
-        // Get current song
-        var title = '', artist = '';
-        if (window.currentSource === 'youtube' && window.ytResults && window.ytResults[window.currentIndex]) {
-            title = window.ytResults[window.currentIndex].snippet.title || '';
-            artist = window.ytResults[window.currentIndex].snippet.channelTitle || '';
-        } else if (window.songs && window.songs[window.currentIndex]) {
-            title = window.songs[window.currentIndex].title || '';
-            artist = window.songs[window.currentIndex].artist_name || '';
-        }
-
-        if (!title) {
-            body.innerHTML = '<div class="ly-msg">Play a song first to find lyric videos 🎧</div>';
-            return;
-        }
-
-        titleEl.textContent = 'LYRIC VIDEOS';
-
-        // Clean the title
-        var cleanTitle = title.replace(/official|video|lyrics|lyric|audio|music|hd|4k|ft\.|feat\.|\(.*?\)|\[.*?\]/gi, '').trim();
-        var cleanArtist = (artist || '').replace(/vevo|topic|official|- topic/gi, '').trim();
-
-        var query = (cleanArtist ? cleanArtist + ' ' : '') + cleanTitle + ' lyrics';
-
-        body.innerHTML = '<div class="ly-msg">🔍 Searching for lyric videos...</div>';
-
-        try {
-            var d = await window.pget('/search?q=' + encodeURIComponent(query) + '&filter=videos');
-            var items = (d.items || []).filter(function(v) { return v.url && v.title; }).slice(0, 20);
-
-            if (items.length === 0) {
-                body.innerHTML = '<div class="ly-msg">😕 No lyric videos found for this song.</div>';
-                return;
-            }
-
-            body.innerHTML = '';
-            items.forEach(function(v, idx) {
-                var vid = (v.url || '').replace('/watch?v=', '');
-                var row = document.createElement('div');
-                row.className = 'ly-video-row';
-                row.innerHTML = `
-                    <img src="${v.thumbnail || ''}" onerror="this.style.display='none'">
-                    <div class="ly-video-info">
-                        <div class="ly-video-title">${v.title.replace(/</g, '&lt;')}</div>
-                        <div class="ly-video-channel">${(v.uploaderName || 'Unknown').replace(/</g, '&lt;')}</div>
-                    </div>
-                    <div class="ly-play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                `;
-                row.onclick = function() {
-                    closeLyrics();
-                    var vid = (v.url || '').replace('/watch?v=', '');
-                    // Build a proper queue
-                    var newQueue = items.map(function(x) {
-                        return {
-                            id: { videoId: (x.url || '').replace('/watch?v=', '') },
-                            snippet: {
-                                title: x.title,
-                                channelTitle: x.uploaderName || '',
-                                thumbnails: { 
-                                    default: { url: x.thumbnail }, 
-                                    high: { url: x.thumbnail } 
-                                }
-                            }
-                        };
-                    });
-                    window.ytResults = newQueue;
-                    window.playQueue = newQueue;
-                    // Find the index of this video in the queue
-                    var playIdx = newQueue.findIndex(function(t) { return t.id.videoId === vid; });
-                    if (playIdx < 0) playIdx = 0;
-                    // Play it
-                    if (typeof window.playYoutube === 'function') {
-                        window.playYoutube(playIdx);
-                    }
-                };
-                body.appendChild(row);
-            });
-        } catch(err) {
-            body.innerHTML = '<div class="ly-msg">⚠️ Could not load lyric videos. Check your internet.</div>';
-        }
-    }
-
-    function init() {
-        injectStyle();
-        injectElements();
-
-        setInterval(function() {
-            var btn = document.getElementById('lyricsBtnV6');
-            if (!btn) return;
-            var fp = document.getElementById('fullPlayer');
-            if (fp && fp.classList.contains('active')) btn.classList.add('show');
-            else {
-                btn.classList.remove('show');
-                closeLyrics();
-            }
-        }, 400);
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
-    window.openLyrics = openLyrics;
-    window.closeLyrics = closeLyrics;
-})();
-// END LYRICS FEATURE
 
 
 
@@ -2474,3 +2155,313 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 })();
 // END COMING SOON DOWNLOAD
+
+
+// LYRICS FEATURE
+(function() {
+    var PANEL_TOP_OFFSET = 380;
+
+    function injectStyle() {
+        if (document.getElementById('lyricsStyle')) return;
+        var style = document.createElement('style');
+        style.id = 'lyricsStyle';
+        style.textContent = `
+            #lyricsBtn {
+                position: fixed;
+                bottom: 155px;
+                right: 15px;
+                z-index: 999997;
+                background: rgba(0, 224, 208, 0.15);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border: 1px solid rgba(0, 224, 208, 0.5);
+                border-radius: 50%;
+                width: 52px;
+                height: 52px;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 4px 18px rgba(0,0,0,0.7), 0 0 20px rgba(0,224,208,0.3);
+                transition: all 0.2s ease;
+            }
+            #lyricsBtn:active { transform: scale(0.9); background: rgba(0,224,208,0.4); }
+            #lyricsBtn svg { width: 26px; height: 26px; fill: #00e0d0; }
+            #lyricsBtn.show { display: flex; }
+
+            #lyricsPanel {
+                position: fixed;
+                left: 0; right: 0; bottom: 0;
+                top: ${PANEL_TOP_OFFSET}px;
+                z-index: 9999996;
+                display: none;
+                flex-direction: column;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(30px) saturate(180%);
+                -webkit-backdrop-filter: blur(30px) saturate(180%);
+                border-top: 1px solid rgba(0, 224, 208, 0.45);
+                box-shadow: 0 -8px 40px rgba(0,0,0,0.8), 0 0 30px rgba(0,224,208,0.15);
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 0.35s ease, transform 0.35s ease;
+                overflow: hidden;
+            }
+            #lyricsPanel.show { display: flex; opacity: 1; transform: translateY(0); }
+
+            #lyricsHeader {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 20px 12px 20px;
+                border-bottom: 1px solid rgba(0, 224, 208, 0.15);
+            }
+            #lyricsTitle {
+                color: #00e0d0;
+                font-size: 13px;
+                font-weight: bold;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                text-shadow: 0 0 15px rgba(0,224,208,0.6);
+                flex: 1;
+                margin-right: 10px;
+            }
+            #lyricsClose {
+                width: 34px; height: 34px;
+                border-radius: 50%;
+                background: rgba(0,0,0,0.5);
+                border: 1px solid rgba(255,255,255,0.2);
+                color: #fff;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 16px;
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+            #lyricsClose:active { background: rgba(0,224,208,0.35); }
+
+            #lyricsBody {
+                flex: 1;
+                overflow-y: auto;
+                padding: 10px 16px 20px 16px;
+                -webkit-overflow-scrolling: touch;
+            }
+            #lyricsBody::-webkit-scrollbar { display: none; }
+
+            .ly-video-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px;
+                margin-bottom: 8px;
+                background: rgba(20, 20, 20, 0.7);
+                border: 1px solid rgba(0, 224, 208, 0.15);
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .ly-video-row:active {
+                background: rgba(0, 224, 208, 0.2);
+                border-color: #00e0d0;
+                transform: scale(0.98);
+            }
+            .ly-video-row img {
+                width: 80px;
+                height: 60px;
+                border-radius: 6px;
+                object-fit: cover;
+                flex-shrink: 0;
+            }
+            .ly-video-info { flex: 1; overflow: hidden; }
+            .ly-video-title {
+                font-size: 12px;
+                color: #fff;
+                font-weight: bold;
+                line-height: 1.3;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            }
+            .ly-video-channel {
+                font-size: 10px;
+                color: #888;
+                margin-top: 3px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .ly-play-icon {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                background: #00e0d0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .ly-play-icon svg {
+                width: 14px;
+                height: 14px;
+                fill: #000;
+                margin-left: 1px;
+            }
+            #lyricsBody .ly-msg {
+                color: #aaa;
+                font-style: italic;
+                font-size: 14px;
+                text-align: center;
+                padding: 40px 20px;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function injectElements() {
+        if (!document.getElementById('lyricsBtn')) {
+            var btn = document.createElement('div');
+            btn.id = 'lyricsBtn';
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg>';
+            document.body.appendChild(btn);
+            btn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openLyrics();
+            };
+        }
+        if (!document.getElementById('lyricsPanel')) {
+            var panel = document.createElement('div');
+            panel.id = 'lyricsPanel';
+            panel.innerHTML = `
+                <div id="lyricsHeader">
+                    <div id="lyricsTitle">Lyric Videos</div>
+                    <div id="lyricsClose">✕</div>
+                </div>
+                <div id="lyricsBody">
+                    <div class="ly-msg">Loading lyric videos...</div>
+                </div>
+            `;
+            document.body.appendChild(panel);
+            document.getElementById('lyricsClose').onclick = function(e) {
+                e.stopPropagation();
+                closeLyrics();
+            };
+        }
+    }
+
+    function openLyrics() {
+        var panel = document.getElementById('lyricsPanel');
+        if (!panel) return;
+        panel.classList.add('show');
+        searchLyricVideos();
+    }
+
+    function closeLyrics() {
+        var panel = document.getElementById('lyricsPanel');
+        if (panel) panel.classList.remove('show');
+    }
+
+    async function searchLyricVideos() {
+        var body = document.getElementById('lyricsBody');
+        var titleEl = document.getElementById('lyricsTitle');
+
+        // Get current song
+        var title = '', artist = '';
+        if (window.currentSource === 'youtube' && window.ytResults && window.ytResults[window.currentIndex]) {
+            title = window.ytResults[window.currentIndex].snippet.title || '';
+            artist = window.ytResults[window.currentIndex].snippet.channelTitle || '';
+        } else if (window.songs && window.songs[window.currentIndex]) {
+            title = window.songs[window.currentIndex].title || '';
+            artist = window.songs[window.currentIndex].artist_name || '';
+        }
+
+        if (!title) {
+            body.innerHTML = '<div class="ly-msg">Play a song first to find lyric videos 🎧</div>';
+            return;
+        }
+
+        titleEl.textContent = 'LYRIC VIDEOS';
+
+        var cleanTitle = title.replace(/official|video|lyrics|lyric|audio|music|hd|4k|ft\.|feat\.|\(.*?\)|\[.*?\]/gi, '').trim();
+        var cleanArtist = (artist || '').replace(/vevo|topic|official|- topic/gi, '').trim();
+
+        var query = (cleanArtist ? cleanArtist + ' ' : '') + cleanTitle + ' lyrics';
+        body.innerHTML = '<div class="ly-msg">🔍 Searching for lyric videos...</div>';
+
+        try {
+            var d = await window.pget('/search?q=' + encodeURIComponent(query) + '&filter=videos');
+            var items = (d.items || []).filter(function(v) { return v.url && v.title; }).slice(0, 20);
+
+            if (items.length === 0) {
+                body.innerHTML = '<div class="ly-msg">😕 No lyric videos found for this song.</div>';
+                return;
+            }
+
+            body.innerHTML = '';
+            items.forEach(function(v, idx) {
+                var vid = (v.url || '').replace('/watch?v=', '');
+                var row = document.createElement('div');
+                row.className = 'ly-video-row';
+                row.innerHTML = `
+                    <img src="${v.thumbnail || ''}" onerror="this.style.opacity='0.3'">
+                    <div class="ly-video-info">
+                        <div class="ly-video-title">${(v.title || '').replace(/</g, '&lt;')}</div>
+                        <div class="ly-video-channel">${(v.uploaderName || 'Unknown').replace(/</g, '&lt;')}</div>
+                    </div>
+                    <div class="ly-play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                `;
+                row.onclick = function() {
+                    closeLyrics();
+                    var newQueue = items.map(function(x) {
+                        return {
+                            id: { videoId: (x.url || '').replace('/watch?v=', '') },
+                            snippet: {
+                                title: x.title,
+                                channelTitle: x.uploaderName || '',
+                                thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                            }
+                        };
+                    });
+                    window.ytResults = newQueue;
+                    window.playQueue = newQueue;
+                    var playIdx = newQueue.findIndex(function(t) { return t.id.videoId === vid; });
+                    if (playIdx < 0) playIdx = 0;
+                    if (typeof window.playYoutube === 'function') window.playYoutube(playIdx);
+                };
+                body.appendChild(row);
+            });
+        } catch(err) {
+            body.innerHTML = '<div class="ly-msg">⚠️ Could not load lyric videos. Check your internet.</div>';
+        }
+    }
+
+    function init() {
+        injectStyle();
+        injectElements();
+
+        // Show/hide lyrics button only when full player is active
+        setInterval(function() {
+            var btn = document.getElementById('lyricsBtn');
+            if (!btn) return;
+            var fp = document.getElementById('fullPlayer');
+            if (fp && fp.classList.contains('active')) btn.classList.add('show');
+            else {
+                btn.classList.remove('show');
+                closeLyrics();
+            }
+        }, 400);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    window.openLyrics = openLyrics;
+    window.closeLyrics = closeLyrics;
+})();
+// END LYRICS FEATURE
