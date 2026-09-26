@@ -2045,3 +2045,98 @@ document.addEventListener('DOMContentLoaded', function() {
     window.stopArtistRadio = stopRadio;
 })();
 // END ARTIST RADIO
+
+
+// FORCE YT INIT
+(function() {
+    function forceInitYouTube() {
+        // Wait until the youtube-player div exists
+        var ytDiv = document.getElementById('youtube-player');
+        if (!ytDiv) {
+            console.log('[YT Init] Waiting for youtube-player div...');
+            setTimeout(forceInitYouTube, 500);
+            return;
+        }
+
+        // Wait until YT API is loaded
+        if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+            console.log('[YT Init] Waiting for YT API...');
+            setTimeout(forceInitYouTube, 500);
+            return;
+        }
+
+        // If a player already exists, don't re-create it
+        if (window.ytPlayer && typeof window.ytPlayer.loadVideoById === 'function') {
+            console.log('[YT Init] Player already exists.');
+            return;
+        }
+
+        console.log('[YT Init] Creating YT player now...');
+
+        // Clear any old content
+        ytDiv.innerHTML = '';
+
+        // Create the player
+        try {
+            window.ytPlayer = new YT.Player('youtube-player', {
+                height: '100%',
+                width: '100%',
+                playerVars: {
+                    playsinline: 1,
+                    controls: 1,
+                    autoplay: 1,
+                    rel: 0,
+                    modestbranding: 1,
+                    enablejsapi: 1,
+                    origin: window.location.origin
+                },
+                events: {
+                    'onReady': function() {
+                        window.ytReady = true;
+                        console.log('[YT Init] Player is ready!');
+                    },
+                    'onStateChange': function(e) {
+                        if (e.data === 1) { window.isPlaying = true; if (typeof updateAllIcons === 'function') updateAllIcons(); }
+                        else if (e.data === 2) { window.isPlaying = false; if (typeof updateAllIcons === 'function') updateAllIcons(); }
+                        else if (e.data === 0) {
+                            // Video ended - auto-shuffle
+                            if (window.simPool && window.simPool.length > 0) {
+                                var ri = Math.floor(Math.random() * window.simPool.length);
+                                window.ytResults = window.simPool.map(function(x) {
+                                    return {
+                                        id: { videoId: x.id },
+                                        snippet: {
+                                            title: x.title,
+                                            channelTitle: x.uploaderName || '',
+                                            thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                                        }
+                                    };
+                                });
+                                window.playQueue = window.ytResults;
+                                if (typeof window.playYoutube === 'function') window.playYoutube(ri);
+                            } else if (typeof nextTrack === 'function') {
+                                nextTrack();
+                            }
+                        }
+                    },
+                    'onError': function(e) {
+                        console.log('[YT Init] Player error:', e.data);
+                    }
+                }
+            });
+        } catch(err) {
+            console.log('[YT Init] Error creating player:', err);
+            setTimeout(forceInitYouTube, 1000);
+        }
+    }
+
+    // Start trying to init as soon as possible
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(forceInitYouTube, 1000);
+        });
+    } else {
+        setTimeout(forceInitYouTube, 1000);
+    }
+})();
+// END FORCE YT INIT
