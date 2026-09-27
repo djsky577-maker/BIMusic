@@ -113,7 +113,7 @@ function onYouTubeIframeAPIReady(){
 try{
 ytPlayer=new YT.Player('youtube-player',{
 height:'100%',width:'100%',
-playerVars:{playsinline:1,controls:0,autoplay:1, widget_referrer: 'https://djsky577-maker.github.io/BIMusic/'},
+playerVars:{playsinline:1,controls:0,autoplay:1},
 events:{
 onReady:function(){ytReady=true;},
 onStateChange:function(e){
@@ -141,7 +141,7 @@ function toggleShuffle(){isShuffle=!isShuffle;document.getElementById('shuffleBt
 function toggleRepeat(){repeatMode=(repeatMode+1)%3;var b=document.getElementById('repeatBtn');b.classList.remove('active');if(repeatMode>=1)b.classList.add('active');}
 function toggleSpeed(){var s=[0.5,1,1.5,2];var i=s.indexOf(playbackSpeed);playbackSpeed=s[(i+1)%s.length];document.getElementById('speedLabel').textContent=playbackSpeed+'x';if(currentSource==='db')document.getElementById('audioPlayer').playbackRate=playbackSpeed;else if(ytReady&&ytPlayer&&ytPlayer.setPlaybackRate)ytPlayer.setPlaybackRate(playbackSpeed);}
 function toggleLikeCurrent(){document.getElementById('fullHeart').style.fill='#ff4d4d';}
-function dlId(vid){if(!vid)return;try{navigator.clipboard.writeText('https://www.youtube.com/watch?v='+vid);}catch(e){}navigator.clipboard.writeText('https://www.youtube.com/watch?v='+vid);window.open('https://youtubegrab.com','_blank');}
+function dlId(vid){if(!vid)return;try{navigator.clipboard.writeText('https://www.youtube.com/watch?v='+vid);}catch(e){}window.location.href='https://youtubegrab.com';}
 function downloadCurrent(){var t=null;if(currentSource==='youtube')t=ytResults[currentIndex];else t=songs[currentIndex];if(!t)return alert('No song playing');var vid=t.id?t.id.videoId:t.id;if(!vid)return;dlId(vid);}
 function playHeroSong(){if(songs.length>0)playDbSong(0);else switchTab('search',document.querySelectorAll('.nav-item')[1]);}
 function openFullPlayer(){document.getElementById('fullPlayer').classList.add('active');}
@@ -313,6 +313,49 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Override YouTube initialization to auto-shuffle from Similar Songs
+window.onYouTubeIframeAPIReady = function() {
+    ytPlayer = new YT.Player('youtube-player', {
+        height: '100%',
+        width: '100%',
+        playerVars: {
+            playsinline: 1,
+            controls: 1, // Enable controls so you can pause by tapping
+            autoplay: 1,
+            rel: 0,
+            modestbranding: 1,
+            enablejsapi: 1
+        },
+        events: {
+            'onReady': function() { ytReady = true; },
+            'onStateChange': function(e) {
+                if (e.data === 1) { // Playing
+                    isPlaying = true; updateAllIcons();
+                } else if (e.data === 2) { // Paused
+                    isPlaying = false; updateAllIcons();
+                } else if (e.data === 0) { // ENDED
+                    // Auto-shuffle from Similar Songs!
+                    if (window.simPool && window.simPool.length > 0) {
+                        var ri = Math.floor(Math.random() * window.simPool.length);
+                        window.ytResults = window.simPool.map(function(x) {
+                            return {
+                                id: { videoId: x.id },
+                                snippet: {
+                                    title: x.title,
+                                    channelTitle: x.uploaderName,
+                                    thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                                }
+                            };
+                        });
+                        window.playQueue = window.ytResults;
+                        window.playYoutube(ri);
+                    } else {
+                        if (typeof nextTrack === 'function') nextTrack();
+                    }
+                }
+            }
+        }
+    });
+};
 
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -362,6 +405,56 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // INTERCEPT YOUTUBE END SCREEN
+window.onYouTubeIframeAPIReady = function() {
+    ytPlayer = new YT.Player('youtube-player', {
+        height: '100%',
+        width: '100%',
+        playerVars: {
+            playsinline: 1,
+            controls: 1,
+            autoplay: 1,
+            rel: 0, // Kills YouTube's "More Videos" end screen
+            modestbranding: 1,
+            enablejsapi: 1
+        },
+        events: {
+            'onReady': function() { ytReady = true; },
+            'onStateChange': function(e) {
+                if (e.data === 1) { 
+                    isPlaying = true; updateAllIcons();
+                } else if (e.data === 2) { 
+                    isPlaying = false; updateAllIcons();
+                } else if (e.data === 0) { 
+                    // VIDEO ENDED! 
+                    // Instead of shuffling the MAIN queue, we grab a random song from SIMILAR SONGS
+                    if (window.simPool && window.simPool.length > 0) {
+                        // Pick a random song from Similar Songs (Mixed)
+                        var randomIndex = Math.floor(Math.random() * window.simPool.length);
+                        
+                        // Temporarily set the queue to Similar Songs so "Next" goes through them
+                        window.ytResults = window.simPool.map(function(x) {
+                            return {
+                                id: { videoId: x.id },
+                                snippet: {
+                                    title: x.title,
+                                    channelTitle: x.uploaderName,
+                                    thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                                }
+                            };
+                        });
+                        window.playQueue = window.ytResults;
+                        
+                        // Play the random Similar Song
+                        window.playYoutube(randomIndex);
+                    } else {
+                        // Fallback if no Similar Songs are loaded yet
+                        if (typeof nextTrack === 'function') nextTrack();
+                    }
+                }
+            }
+        }
+    });
+};
 
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -702,10 +795,25 @@ document.addEventListener('DOMContentLoaded', function() {
 // END SMART BACK BTN
 
 
+
+
+
 // UPDATE BTN
 (function() {
     function initUpdateButton() {
-        // Inject CSS for the update button
+        var now = Date.now();
+        var DAY_MS = 24 * 60 * 60 * 1000;
+
+        // Check the lock state
+        var state = JSON.parse(localStorage.getItem('biUpdateBtnState') || '{}');
+
+        // If we're in a 2-day lock, don't show the button at all
+        if (state.lockUntil && now < state.lockUntil) {
+            console.log('[UpdateBtn] Locked until', new Date(state.lockUntil).toLocaleString());
+            return;
+        }
+
+        // --- CSS ---
         if (!document.getElementById('updateBtnStyle')) {
             var style = document.createElement('style');
             style.id = 'updateBtnStyle';
@@ -721,7 +829,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     border: none;
                     border-radius: 30px;
                     padding: 12px 20px;
-                    font-size: 14px;
+                    font-size: 13px;
                     font-weight: bold;
                     cursor: pointer;
                     box-shadow: 0 6px 20px rgba(0, 224, 208, 0.5);
@@ -729,48 +837,61 @@ document.addEventListener('DOMContentLoaded', function() {
                     gap: 8px;
                     transition: all 0.3s ease;
                 }
-                #updateBtnSmart:active {
-                    transform: scale(0.95);
+                #updateBtnSmart.show { display: flex; animation: pulseUpdate 2s infinite; }
+                @keyframes pulseUpdate {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                    100% { transform: scale(1); }
                 }
-                #updateBtnSmart svg {
-                    width: 18px;
-                    height: 18px;
-                    fill: #000;
-                }
+                #updateBtnSmart:active { transform: scale(0.95); }
+                #updateBtnSmart svg { width: 16px; height: 16px; fill: #000; }
             `;
             document.head.appendChild(style);
         }
 
-        // Create the button
+        // --- Create the button ---
         if (!document.getElementById('updateBtnSmart')) {
             var btn = document.createElement('button');
             btn.id = 'updateBtnSmart';
-            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Check for Updates';
-            
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> Update Available';
+            document.body.appendChild(btn);
+
             btn.onclick = function() {
+                // Lock the button for 2 days
+                var s = JSON.parse(localStorage.getItem('biUpdateBtnState') || '{}');
+                s.lockUntil = Date.now() + (2 * DAY_MS);
+                localStorage.setItem('biUpdateBtnState', JSON.stringify(s));
+
                 btn.innerHTML = '⏳ Updating...';
                 btn.disabled = true;
-                // Force a hard reload with a new URL param to bypass cache
+
                 setTimeout(function() {
-                    var newUrl = window.location.pathname + '?update=' + Date.now();
-                    window.location.href = newUrl;
-                }, 500);
+                    window.location.href = window.location.pathname + '?update=' + Date.now();
+                }, 400);
             };
-            
-            document.body.appendChild(btn);
         }
 
-        // Show button only on the artist modal (profile section)
+        // --- Show only when inside an artist profile ---
         setInterval(function() {
             var btn = document.getElementById('updateBtnSmart');
             if (!btn) return;
+
+            // Re-check lock in case it was set
+            var s = JSON.parse(localStorage.getItem('biUpdateBtnState') || '{}');
+            if (s.lockUntil && Date.now() < s.lockUntil) {
+                btn.classList.remove('show');
+                return;
+            }
+
             var artistModal = document.getElementById('artistModal');
             if (artistModal && artistModal.classList.contains('active')) {
-                btn.style.display = 'flex';
+                btn.classList.add('show');
             } else {
-                btn.style.display = 'none';
+                btn.classList.remove('show');
             }
-        }, 500);
+        }, 400);
+
+        console.log('[UpdateBtn] Loaded. Shows in artist profile. Locks for 2 days after tap.');
     }
 
     if (document.readyState === 'loading') {
@@ -780,3 +901,494 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 })();
 // END UPDATE BTN
+
+
+// WELCOME NOTE
+(function() {
+    function initWelcomeNote() {
+        // Only show ONCE per app restart (uses sessionStorage, so it resets when app closes)
+        if (sessionStorage.getItem('biWelcomeShown') === 'true') return;
+
+        // Inject CSS
+        if (!document.getElementById('welcomeNoteStyle')) {
+            var style = document.createElement('style');
+            style.id = 'welcomeNoteStyle';
+            style.textContent = `
+                #welcomeOverlay {
+                    position: fixed;
+                    top: 0; left: 0;
+                    width: 100vw; height: 100vh;
+                    z-index: 9999999;
+                    background: rgba(0, 0, 0, 0.75);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                    box-sizing: border-box;
+                    opacity: 0;
+                    animation: welcomeFadeIn 0.5s ease forwards;
+                }
+                @keyframes welcomeFadeIn {
+                    to { opacity: 1; }
+                }
+                @keyframes welcomeFadeOut {
+                    to { opacity: 0; }
+                }
+                #welcomePanel {
+                    width: 100%;
+                    max-width: 380px;
+                    background: linear-gradient(135deg, rgba(0, 224, 208, 0.15), rgba(0, 143, 133, 0.08));
+                    backdrop-filter: blur(30px);
+                    -webkit-backdrop-filter: blur(30px);
+                    border: 1px solid rgba(0, 224, 208, 0.4);
+                    border-radius: 24px;
+                    padding: 28px 22px 22px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 40px rgba(0, 224, 208, 0.2);
+                    transform: translateY(30px) scale(0.95);
+                    opacity: 0;
+                    animation: welcomePanelIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                }
+                @keyframes welcomePanelIn {
+                    to { transform: translateY(0) scale(1); opacity: 1; }
+                }
+                .welcome-logo {
+                    text-align: center;
+                    font-size: 32px;
+                    font-weight: 900;
+                    color: #00e0d0;
+                    text-shadow: 0 0 25px rgba(0, 224, 208, 0.8);
+                    margin-bottom: 6px;
+                    letter-spacing: 1px;
+                }
+                .welcome-sub {
+                    text-align: center;
+                    font-size: 12px;
+                    color: #aaa;
+                    margin-bottom: 22px;
+                    letter-spacing: 2px;
+                    text-transform: uppercase;
+                }
+                .welcome-tip {
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 12px;
+                    background: rgba(0, 0, 0, 0.35);
+                    border: 1px solid rgba(0, 224, 208, 0.15);
+                    border-radius: 14px;
+                    padding: 12px 14px;
+                    margin-bottom: 10px;
+                }
+                .welcome-tip-icon {
+                    font-size: 22px;
+                    flex-shrink: 0;
+                    line-height: 1;
+                }
+                .welcome-tip-text {
+                    flex: 1;
+                    color: #e0e0e0;
+                    font-size: 13px;
+                    line-height: 1.5;
+                }
+                .welcome-tip-text b {
+                    color: #00e0d0;
+                }
+                #welcomeDismissBtn {
+                    width: 100%;
+                    margin-top: 18px;
+                    padding: 16px;
+                    font-size: 15px;
+                    font-weight: 900;
+                    color: #000;
+                    background: linear-gradient(135deg, #00e0d0, #008f85);
+                    border: none;
+                    border-radius: 14px;
+                    cursor: pointer;
+                    letter-spacing: 0.5px;
+                    box-shadow: 0 8px 25px rgba(0, 224, 208, 0.5);
+                    animation: bounceBtn 1.4s ease-in-out infinite;
+                    transform-origin: center;
+                }
+                #welcomeDismissBtn:active {
+                    transform: scale(0.95);
+                }
+                @keyframes bounceBtn {
+                    0%   { transform: scale(1);    box-shadow: 0 8px 25px rgba(0, 224, 208, 0.5); }
+                    50%  { transform: scale(1.08); box-shadow: 0 12px 35px rgba(0, 224, 208, 0.8); }
+                    100% { transform: scale(1);    box-shadow: 0 8px 25px rgba(0, 224, 208, 0.5); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Create the overlay
+        var overlay = document.createElement('div');
+        overlay.id = 'welcomeOverlay';
+        overlay.innerHTML = `
+            <div id="welcomePanel">
+                <div class="welcome-logo">B.I MUSIC</div>
+                <div class="welcome-sub">Welcome to the vibe</div>
+
+                <div class="welcome-tip">
+                    <div class="welcome-tip-icon">⬇️</div>
+                    <div class="welcome-tip-text">Tap the <b>Download</b> button on any song. The link is copied automatically — just paste it on the page that opens.</div>
+                </div>
+
+                <div class="welcome-tip">
+                    <div class="welcome-tip-icon">◀️</div>
+                    <div class="welcome-tip-text">Use the black <b>Back Button</b> at the bottom-right to return to the previous page. It works everywhere.</div>
+                </div>
+
+                <div class="welcome-tip">
+                    <div class="welcome-tip-icon">💚</div>
+                    <div class="welcome-tip-text">Enjoying <b>B.I Music</b>? Share it with your friends and spread the vibe!</div>
+                </div>
+
+                <button id="welcomeDismissBtn">🎧 GOT IT — LET'S GO</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // Mark as shown (per session)
+        sessionStorage.setItem('biWelcomeShown', 'true');
+
+        // Dismiss handler
+        var dismissBtn = document.getElementById('welcomeDismissBtn');
+        dismissBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            overlay.style.animation = 'welcomeFadeOut 0.4s ease forwards';
+            setTimeout(function() {
+                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            }, 400);
+        };
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initWelcomeNote, 500);
+        });
+    } else {
+        setTimeout(initWelcomeNote, 500);
+    }
+})();
+// END WELCOME NOTE
+
+
+
+
+
+// LYRICS FEATURE
+(function() {
+    // Where the panel begins (the red line). Adjust this value if you need to move it.
+    var PANEL_TOP_OFFSET = 380; // px below the top of screen (stops above the repeat/download row)
+
+    function injectStyle() {
+        if (document.getElementById('lyricsStyleV2')) return;
+        var style = document.createElement('style');
+        style.id = 'lyricsStyleV2';
+        style.textContent = `
+            /* Floating lyrics button (left, bottom) */
+            #lyricsBtnV2 {
+                position: fixed;
+                bottom: 155px;
+                right: 15px;
+                z-index: 999997;
+                background: rgba(0, 224, 208, 0.15);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border: 1px solid rgba(0, 224, 208, 0.5);
+                border-radius: 50%;
+                width: 52px;
+                height: 52px;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 4px 18px rgba(0,0,0,0.7), 0 0 20px rgba(0,224,208,0.3);
+                transition: all 0.2s ease;
+            }
+            #lyricsBtnV2:active { transform: scale(0.9); background: rgba(0,224,208,0.4); }
+            #lyricsBtnV2 svg { width: 26px; height: 26px; fill: #00e0d0; }
+            #lyricsBtnV2.show { display: flex; }
+
+            /* Lyrics panel - starts at the red line and goes to the bottom of the screen */
+            #lyricsPanelV2 {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                top: ${PANEL_TOP_OFFSET}px; /* starts where the red line is */
+                z-index: 9999996;
+                display: none;
+                flex-direction: column;
+                background: rgba(0, 0, 0, 0.35);
+                backdrop-filter: blur(30px) saturate(180%);
+                -webkit-backdrop-filter: blur(30px) saturate(180%);
+                border-top: 1px solid rgba(0, 224, 208, 0.45);
+                box-shadow: 0 -8px 40px rgba(0,0,0,0.8), 0 0 30px rgba(0,224,208,0.15);
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 0.35s ease, transform 0.35s ease;
+                overflow: hidden;
+            }
+            #lyricsPanelV2.show { display: flex; opacity: 1; transform: translateY(0); }
+
+            /* Fade at the top so lyrics disappear right at the red line */
+            #lyricsPanelV2::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0;
+                height: 80px;
+                background: linear-gradient(to bottom, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.6) 60%, transparent 100%);
+                pointer-events: none;
+                z-index: 2;
+            }
+            /* Fade at the bottom too, for a clean look */
+            #lyricsPanelV2::after {
+                content: '';
+                position: absolute;
+                bottom: 0; left: 0; right: 0;
+                height: 60px;
+                background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, transparent 100%);
+                pointer-events: none;
+                z-index: 2;
+            }
+
+            /* Header row with song title + close */
+            #lyricsHeaderV2 {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 20px 10px 20px;
+                z-index: 3;
+                position: relative;
+            }
+            #lyricsTitleV2 {
+                color: #00e0d0;
+                font-size: 13px;
+                font-weight: bold;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                text-shadow: 0 0 15px rgba(0,224,208,0.6);
+                flex: 1;
+                margin-right: 10px;
+            }
+            #lyricsCloseV2 {
+                width: 34px; height: 34px;
+                border-radius: 50%;
+                background: rgba(0,0,0,0.5);
+                border: 1px solid rgba(255,255,255,0.2);
+                color: #fff;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 16px;
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+            #lyricsCloseV2:active { background: rgba(0,224,208,0.35); }
+
+            /* Lyrics scroll area */
+            #lyricsScrollV2 {
+                flex: 1;
+                overflow-y: auto;
+                padding: 60px 24px 80px 24px;
+                box-sizing: border-box;
+                scroll-behavior: smooth;
+                -webkit-overflow-scrolling: touch;
+                mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+                -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+                position: relative;
+                z-index: 1;
+            }
+            #lyricsScrollV2::-webkit-scrollbar { display: none; }
+            #lyricsScrollV2 p {
+                color: rgba(230, 230, 230, 0.55);
+                font-size: 19px;
+                line-height: 1.7;
+                font-weight: 600;
+                text-align: center;
+                margin: 14px 0;
+                transition: color 0.4s ease, transform 0.4s ease, opacity 0.4s ease;
+            }
+            #lyricsScrollV2 p.active {
+                color: #00e0d0;
+                font-size: 22px;
+                text-shadow: 0 0 25px rgba(0, 224, 208, 0.7);
+                transform: scale(1.04);
+            }
+            #lyricsScrollV2 .msg {
+                color: #888;
+                font-style: italic;
+                font-size: 16px;
+                font-weight: normal;
+                padding: 40px 0;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function injectElements() {
+        // Lyrics button
+        if (!document.getElementById('lyricsBtnV2')) {
+            var btn = document.createElement('div');
+            btn.id = 'lyricsBtnV2';
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg>';
+            document.body.appendChild(btn);
+            btn.onclick = function(e) {
+                e.preventDefault(); e.stopPropagation();
+                openLyrics();
+            };
+        }
+        // Lyrics panel
+        if (!document.getElementById('lyricsPanelV2')) {
+            var panel = document.createElement('div');
+            panel.id = 'lyricsPanelV2';
+            panel.innerHTML = `
+                <div id="lyricsHeaderV2">
+                    <div id="lyricsTitleV2">Lyrics</div>
+                    <div id="lyricsCloseV2">✕</div>
+                </div>
+                <div id="lyricsScrollV2">
+                    <p class="msg">Tap a song to load lyrics 🎧</p>
+                </div>
+            `;
+            document.body.appendChild(panel);
+            document.getElementById('lyricsCloseV2').onclick = function(e) {
+                e.stopPropagation();
+                closeLyrics();
+            };
+        }
+    }
+
+    function openLyrics() {
+        var panel = document.getElementById('lyricsPanelV2');
+        if (!panel) return;
+        panel.classList.add('show');
+        loadLyricsForCurrentSong();
+    }
+    function closeLyrics() {
+        var panel = document.getElementById('lyricsPanelV2');
+        if (panel) panel.classList.remove('show');
+    }
+
+    // Fetch lyrics for the current song (YouTube or local DB)
+    function loadLyricsForCurrentSong() {
+        var title = '', artist = '';
+        if (window.currentSource === 'youtube' && window.ytResults && window.ytResults[window.currentIndex]) {
+            title = window.ytResults[window.currentIndex].snippet.title || '';
+            artist = window.ytResults[window.currentIndex].snippet.channelTitle || '';
+        } else if (window.songs && window.songs[window.currentIndex]) {
+            title = window.songs[window.currentIndex].title || '';
+            artist = window.songs[window.currentIndex].artist_name || '';
+        }
+        if (!title) {
+            document.getElementById('lyricsScrollV2').innerHTML = '<p class="msg">Play a song first 🎧</p>';
+            return;
+        }
+        document.getElementById('lyricsTitleV2').textContent = title.substring(0, 40);
+
+        var cleanTitle = title.replace(/official|video|lyrics|audio|music|hd|4k|ft\.|feat\.|\(.*?\)|\[.*?\]/gi, '').trim();
+        var cleanArtist = (artist || '').replace(/vevo|topic|official/gi, '').trim();
+
+        var scroll = document.getElementById('lyricsScrollV2');
+        scroll.innerHTML = '<p class="msg">🔍 Searching for lyrics...</p>';
+
+        // Try lyrics.ovh first
+        fetch('https://api.lyrics.ovh/v1/' + encodeURIComponent(cleanArtist) + '/' + encodeURIComponent(cleanTitle))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data && data.lyrics) {
+                    renderLyrics(data.lyrics);
+                } else {
+                    // Fallback: try without artist
+                    return fetch('https://api.lyrics.ovh/v1/Unknown/' + encodeURIComponent(cleanTitle))
+                        .then(function(r) { return r.json(); })
+                        .then(function(d2) {
+                            if (d2 && d2.lyrics) renderLyrics(d2.lyrics);
+                            else scroll.innerHTML = '<p class="msg">🎵 No lyrics found for this song.</p>';
+                        });
+                }
+            })
+            .catch(function() {
+                scroll.innerHTML = '<p class="msg">🎵 No lyrics found for this song.</p>';
+            });
+    }
+
+    // Render lyrics and set up the karaoke-like scroll
+    function renderLyrics(rawLyrics) {
+        var scroll = document.getElementById('lyricsScrollV2');
+        var lines = rawLyrics.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
+        var html = '';
+        for (var i = 0; i < lines.length; i++) {
+            html += '<p data-line="' + i + '">' + lines[i].replace(/</g, '&lt;') + '</p>';
+        }
+        scroll.innerHTML = html;
+        scroll.scrollTop = 0;
+
+        // Auto-scroll slowly so lyrics travel upward like karaoke
+        startAutoScroll(scroll);
+    }
+
+    var _autoScrollIv = null;
+    function startAutoScroll(scroll) {
+        if (_autoScrollIv) clearInterval(_autoScrollIv);
+        var lines = scroll.querySelectorAll('p');
+        if (lines.length === 0) return;
+        var i = 0;
+        _autoScrollIv = setInterval(function() {
+            // If panel closed, stop
+            var panel = document.getElementById('lyricsPanelV2');
+            if (!panel || !panel.classList.contains('show')) {
+                clearInterval(_autoScrollIv);
+                _autoScrollIv = null;
+                return;
+            }
+            if (i >= lines.length) {
+                clearInterval(_autoScrollIv);
+                _autoScrollIv = null;
+                return;
+            }
+            // Mark active line
+            lines.forEach(function(p){ p.classList.remove('active'); });
+            lines[i].classList.add('active');
+            // Smoothly scroll so active line sits mid-panel
+            var target = lines[i].offsetTop - (scroll.clientHeight / 2) + (lines[i].clientHeight / 2);
+            scroll.scrollTo({ top: target, behavior: 'smooth' });
+            i++;
+        }, 3500); // advance every ~3.5 seconds (adjust to taste)
+    }
+
+    function init() {
+        injectStyle();
+        injectElements();
+
+        // Show lyrics button only when the full player is active
+        setInterval(function() {
+            var btn = document.getElementById('lyricsBtnV2');
+            if (!btn) return;
+            var fp = document.getElementById('fullPlayer');
+            if (fp && fp.classList.contains('active')) btn.classList.add('show');
+            else {
+                btn.classList.remove('show');
+                closeLyrics();
+            }
+        }, 400);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    // Expose in case you want to trigger from elsewhere
+    window.openLyrics = openLyrics;
+    window.closeLyrics = closeLyrics;
+})();
+// END LYRICS FEATURE
