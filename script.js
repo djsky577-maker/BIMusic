@@ -313,49 +313,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Override YouTube initialization to auto-shuffle from Similar Songs
-window.onYouTubeIframeAPIReady = function() {
-    ytPlayer = new YT.Player('youtube-player', {
-        height: '100%',
-        width: '100%',
-        playerVars: {
-            playsinline: 1,
-            controls: 1, // Enable controls so you can pause by tapping
-            autoplay: 1,
-            rel: 0,
-            modestbranding: 1,
-            enablejsapi: 1
-        },
-        events: {
-            'onReady': function() { ytReady = true; },
-            'onStateChange': function(e) {
-                if (e.data === 1) { // Playing
-                    isPlaying = true; updateAllIcons();
-                } else if (e.data === 2) { // Paused
-                    isPlaying = false; updateAllIcons();
-                } else if (e.data === 0) { // ENDED
-                    // Auto-shuffle from Similar Songs!
-                    if (window.simPool && window.simPool.length > 0) {
-                        var ri = Math.floor(Math.random() * window.simPool.length);
-                        window.ytResults = window.simPool.map(function(x) {
-                            return {
-                                id: { videoId: x.id },
-                                snippet: {
-                                    title: x.title,
-                                    channelTitle: x.uploaderName,
-                                    thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
-                                }
-                            };
-                        });
-                        window.playQueue = window.ytResults;
-                        window.playYoutube(ri);
-                    } else {
-                        if (typeof nextTrack === 'function') nextTrack();
-                    }
-                }
-            }
-        }
-    });
-};
 
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -405,56 +362,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // INTERCEPT YOUTUBE END SCREEN
-window.onYouTubeIframeAPIReady = function() {
-    ytPlayer = new YT.Player('youtube-player', {
-        height: '100%',
-        width: '100%',
-        playerVars: {
-            playsinline: 1,
-            controls: 1,
-            autoplay: 1,
-            rel: 0, // Kills YouTube's "More Videos" end screen
-            modestbranding: 1,
-            enablejsapi: 1
-        },
-        events: {
-            'onReady': function() { ytReady = true; },
-            'onStateChange': function(e) {
-                if (e.data === 1) { 
-                    isPlaying = true; updateAllIcons();
-                } else if (e.data === 2) { 
-                    isPlaying = false; updateAllIcons();
-                } else if (e.data === 0) { 
-                    // VIDEO ENDED! 
-                    // Instead of shuffling the MAIN queue, we grab a random song from SIMILAR SONGS
-                    if (window.simPool && window.simPool.length > 0) {
-                        // Pick a random song from Similar Songs (Mixed)
-                        var randomIndex = Math.floor(Math.random() * window.simPool.length);
-                        
-                        // Temporarily set the queue to Similar Songs so "Next" goes through them
-                        window.ytResults = window.simPool.map(function(x) {
-                            return {
-                                id: { videoId: x.id },
-                                snippet: {
-                                    title: x.title,
-                                    channelTitle: x.uploaderName,
-                                    thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
-                                }
-                            };
-                        });
-                        window.playQueue = window.ytResults;
-                        
-                        // Play the random Similar Song
-                        window.playYoutube(randomIndex);
-                    } else {
-                        // Fallback if no Similar Songs are loaded yet
-                        if (typeof nextTrack === 'function') nextTrack();
-                    }
-                }
-            }
-        }
-    });
-};
 
 
 document.addEventListener('DOMContentLoaded', function() {
