@@ -113,7 +113,7 @@ function onYouTubeIframeAPIReady(){
 try{
 ytPlayer=new YT.Player('youtube-player',{
 height:'100%',width:'100%',
-playerVars:{playsinline:1,controls:0,autoplay:1},
+playerVars:{playsinline:1,controls:0,autoplay:1, widget_referrer: 'https://djsky577-maker.github.io/BIMusic/'},
 events:{
 onReady:function(){ytReady=true;},
 onStateChange:function(e){
