@@ -1081,317 +1081,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-// LYRICS FEATURE
-(function() {
-    // Where the panel begins (the red line). Adjust this value if you need to move it.
-    var PANEL_TOP_OFFSET = 380; // px below the top of screen (stops above the repeat/download row)
 
-    function injectStyle() {
-        if (document.getElementById('lyricsStyleV2')) return;
-        var style = document.createElement('style');
-        style.id = 'lyricsStyleV2';
-        style.textContent = `
-            /* Floating lyrics button (left, bottom) */
-            #lyricsBtnV2 {
-                position: fixed;
-                bottom: 155px;
-                right: 15px;
-                z-index: 999997;
-                background: rgba(0, 224, 208, 0.15);
-                backdrop-filter: blur(15px);
-                -webkit-backdrop-filter: blur(15px);
-                border: 1px solid rgba(0, 224, 208, 0.5);
-                border-radius: 50%;
-                width: 52px;
-                height: 52px;
-                display: none;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: 0 4px 18px rgba(0,0,0,0.7), 0 0 20px rgba(0,224,208,0.3);
-                transition: all 0.2s ease;
-            }
-            #lyricsBtnV2:active { transform: scale(0.9); background: rgba(0,224,208,0.4); }
-            #lyricsBtnV2 svg { width: 26px; height: 26px; fill: #00e0d0; }
-            #lyricsBtnV2.show { display: flex; }
-
-            /* Lyrics panel - starts at the red line and goes to the bottom of the screen */
-            #lyricsPanelV2 {
-                position: fixed;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                top: ${PANEL_TOP_OFFSET}px; /* starts where the red line is */
-                z-index: 9999996;
-                display: none;
-                flex-direction: column;
-                background: rgba(0, 0, 0, 0.35);
-                backdrop-filter: blur(30px) saturate(180%);
-                -webkit-backdrop-filter: blur(30px) saturate(180%);
-                border-top: 1px solid rgba(0, 224, 208, 0.45);
-                box-shadow: 0 -8px 40px rgba(0,0,0,0.8), 0 0 30px rgba(0,224,208,0.15);
-                opacity: 0;
-                transform: translateY(20px);
-                transition: opacity 0.35s ease, transform 0.35s ease;
-                overflow: hidden;
-            }
-            #lyricsPanelV2.show { display: flex; opacity: 1; transform: translateY(0); }
-
-            /* Fade at the top so lyrics disappear right at the red line */
-            #lyricsPanelV2::before {
-                content: '';
-                position: absolute;
-                top: 0; left: 0; right: 0;
-                height: 80px;
-                background: linear-gradient(to bottom, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.6) 60%, transparent 100%);
-                pointer-events: none;
-                z-index: 2;
-            }
-            /* Fade at the bottom too, for a clean look */
-            #lyricsPanelV2::after {
-                content: '';
-                position: absolute;
-                bottom: 0; left: 0; right: 0;
-                height: 60px;
-                background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, transparent 100%);
-                pointer-events: none;
-                z-index: 2;
-            }
-
-            /* Header row with song title + close */
-            #lyricsHeaderV2 {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 14px 20px 10px 20px;
-                z-index: 3;
-                position: relative;
-            }
-            #lyricsTitleV2 {
-                color: #00e0d0;
-                font-size: 13px;
-                font-weight: bold;
-                letter-spacing: 1px;
-                text-transform: uppercase;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                text-shadow: 0 0 15px rgba(0,224,208,0.6);
-                flex: 1;
-                margin-right: 10px;
-            }
-            #lyricsCloseV2 {
-                width: 34px; height: 34px;
-                border-radius: 50%;
-                background: rgba(0,0,0,0.5);
-                border: 1px solid rgba(255,255,255,0.2);
-                color: #fff;
-                display: flex; align-items: center; justify-content: center;
-                font-size: 16px;
-                cursor: pointer;
-                flex-shrink: 0;
-            }
-            #lyricsCloseV2:active { background: rgba(0,224,208,0.35); }
-
-            /* Lyrics scroll area */
-            #lyricsScrollV2 {
-                flex: 1;
-                overflow-y: auto;
-                padding: 60px 24px 80px 24px;
-                box-sizing: border-box;
-                scroll-behavior: smooth;
-                -webkit-overflow-scrolling: touch;
-                mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
-                -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
-                position: relative;
-                z-index: 1;
-            }
-            #lyricsScrollV2::-webkit-scrollbar { display: none; }
-            #lyricsScrollV2 p {
-                color: rgba(230, 230, 230, 0.55);
-                font-size: 19px;
-                line-height: 1.7;
-                font-weight: 600;
-                text-align: center;
-                margin: 14px 0;
-                transition: color 0.4s ease, transform 0.4s ease, opacity 0.4s ease;
-            }
-            #lyricsScrollV2 p.active {
-                color: #00e0d0;
-                font-size: 22px;
-                text-shadow: 0 0 25px rgba(0, 224, 208, 0.7);
-                transform: scale(1.04);
-            }
-            #lyricsScrollV2 .msg {
-                color: #888;
-                font-style: italic;
-                font-size: 16px;
-                font-weight: normal;
-                padding: 40px 0;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    function injectElements() {
-        // Lyrics button
-        if (!document.getElementById('lyricsBtnV2')) {
-            var btn = document.createElement('div');
-            btn.id = 'lyricsBtnV2';
-            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg>';
-            document.body.appendChild(btn);
-            btn.onclick = function(e) {
-                e.preventDefault(); e.stopPropagation();
-                openLyrics();
-            };
-        }
-        // Lyrics panel
-        if (!document.getElementById('lyricsPanelV2')) {
-            var panel = document.createElement('div');
-            panel.id = 'lyricsPanelV2';
-            panel.innerHTML = `
-                <div id="lyricsHeaderV2">
-                    <div id="lyricsTitleV2">Lyrics</div>
-                    <div id="lyricsCloseV2">✕</div>
-                </div>
-                <div id="lyricsScrollV2">
-                    <p class="msg">Tap a song to load lyrics 🎧</p>
-                </div>
-            `;
-            document.body.appendChild(panel);
-            document.getElementById('lyricsCloseV2').onclick = function(e) {
-                e.stopPropagation();
-                closeLyrics();
-            };
-        }
-    }
-
-    function openLyrics() {
-        var panel = document.getElementById('lyricsPanelV2');
-        if (!panel) return;
-        panel.classList.add('show');
-        loadLyricsForCurrentSong();
-    }
-    function closeLyrics() {
-        var panel = document.getElementById('lyricsPanelV2');
-        if (panel) panel.classList.remove('show');
-    }
-
-    // Fetch lyrics for the current song (YouTube or local DB)
-    function loadLyricsForCurrentSong() {
-        var title = '', artist = '';
-        if (window.currentSource === 'youtube' && window.ytResults && window.ytResults[window.currentIndex]) {
-            title = window.ytResults[window.currentIndex].snippet.title || '';
-            artist = window.ytResults[window.currentIndex].snippet.channelTitle || '';
-        } else if (window.songs && window.songs[window.currentIndex]) {
-            title = window.songs[window.currentIndex].title || '';
-            artist = window.songs[window.currentIndex].artist_name || '';
-        }
-        if (!title) {
-            document.getElementById('lyricsScrollV2').innerHTML = '<p class="msg">Play a song first 🎧</p>';
-            return;
-        }
-        document.getElementById('lyricsTitleV2').textContent = title.substring(0, 40);
-
-        var cleanTitle = title.replace(/official|video|lyrics|audio|music|hd|4k|ft\.|feat\.|\(.*?\)|\[.*?\]/gi, '').trim();
-        var cleanArtist = (artist || '').replace(/vevo|topic|official/gi, '').trim();
-
-        var scroll = document.getElementById('lyricsScrollV2');
-        scroll.innerHTML = '<p class="msg">🔍 Searching for lyrics...</p>';
-
-        // Try lyrics.ovh first
-        fetch('https://api.lyrics.ovh/v1/' + encodeURIComponent(cleanArtist) + '/' + encodeURIComponent(cleanTitle))
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data && data.lyrics) {
-                    renderLyrics(data.lyrics);
-                } else {
-                    // Fallback: try without artist
-                    return fetch('https://api.lyrics.ovh/v1/Unknown/' + encodeURIComponent(cleanTitle))
-                        .then(function(r) { return r.json(); })
-                        .then(function(d2) {
-                            if (d2 && d2.lyrics) renderLyrics(d2.lyrics);
-                            else scroll.innerHTML = '<p class="msg">🎵 No lyrics found for this song.</p>';
-                        });
-                }
-            })
-            .catch(function() {
-                scroll.innerHTML = '<p class="msg">🎵 No lyrics found for this song.</p>';
-            });
-    }
-
-    // Render lyrics and set up the karaoke-like scroll
-    function renderLyrics(rawLyrics) {
-        var scroll = document.getElementById('lyricsScrollV2');
-        var lines = rawLyrics.split('\n').map(function(l){ return l.trim(); }).filter(function(l){ return l.length > 0; });
-        var html = '';
-        for (var i = 0; i < lines.length; i++) {
-            html += '<p data-line="' + i + '">' + lines[i].replace(/</g, '&lt;') + '</p>';
-        }
-        scroll.innerHTML = html;
-        scroll.scrollTop = 0;
-
-        // Auto-scroll slowly so lyrics travel upward like karaoke
-        startAutoScroll(scroll);
-    }
-
-    var _autoScrollIv = null;
-    function startAutoScroll(scroll) {
-        if (_autoScrollIv) clearInterval(_autoScrollIv);
-        var lines = scroll.querySelectorAll('p');
-        if (lines.length === 0) return;
-        var i = 0;
-        _autoScrollIv = setInterval(function() {
-            // If panel closed, stop
-            var panel = document.getElementById('lyricsPanelV2');
-            if (!panel || !panel.classList.contains('show')) {
-                clearInterval(_autoScrollIv);
-                _autoScrollIv = null;
-                return;
-            }
-            if (i >= lines.length) {
-                clearInterval(_autoScrollIv);
-                _autoScrollIv = null;
-                return;
-            }
-            // Mark active line
-            lines.forEach(function(p){ p.classList.remove('active'); });
-            lines[i].classList.add('active');
-            // Smoothly scroll so active line sits mid-panel
-            var target = lines[i].offsetTop - (scroll.clientHeight / 2) + (lines[i].clientHeight / 2);
-            scroll.scrollTo({ top: target, behavior: 'smooth' });
-            i++;
-        }, 3500); // advance every ~3.5 seconds (adjust to taste)
-    }
-
-    function init() {
-        injectStyle();
-        injectElements();
-
-        // Show lyrics button only when the full player is active
-        setInterval(function() {
-            var btn = document.getElementById('lyricsBtnV2');
-            if (!btn) return;
-            var fp = document.getElementById('fullPlayer');
-            if (fp && fp.classList.contains('active')) btn.classList.add('show');
-            else {
-                btn.classList.remove('show');
-                closeLyrics();
-            }
-        }, 400);
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
-    // Expose in case you want to trigger from elsewhere
-    window.openLyrics = openLyrics;
-    window.closeLyrics = closeLyrics;
-})();
-// END LYRICS FEATURE
 
 
 // INFO NOTE
@@ -1738,3 +1428,367 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 })();
 // END PROFILE UPDATE BUTTON
+
+
+// LYRICS FEATURE
+(function() {
+    function injectStyle() {
+        if (document.getElementById('lyricsFeatureStyle')) return;
+        var style = document.createElement('style');
+        style.id = 'lyricsFeatureStyle';
+        style.textContent = `
+            #lyricsBtnActive {
+                display: none;
+                position: fixed;
+                bottom: 155px;
+                right: 15px;
+                z-index: 999997;
+                background: rgba(0, 224, 208, 0.15);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border: 1px solid rgba(0, 224, 208, 0.5);
+                border-radius: 50%;
+                width: 52px;
+                height: 52px;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 4px 18px rgba(0,0,0,0.7), 0 0 20px rgba(0,224,208,0.3);
+                transition: all 0.2s ease;
+            }
+            #lyricsBtnActive:active { transform: scale(0.9); background: rgba(0,224,208,0.4); }
+            #lyricsBtnActive svg { width: 26px; height: 26px; fill: #00e0d0; }
+            #lyricsBtnActive.show { display: flex; }
+
+            #lyricsPanelActive {
+                position: fixed;
+                left: 0; right: 0; bottom: 0;
+                top: 380px;
+                z-index: 9999996;
+                display: none;
+                flex-direction: column;
+                background: rgba(0, 0, 0, 0.72);
+                backdrop-filter: blur(30px) saturate(180%);
+                -webkit-backdrop-filter: blur(30px) saturate(180%);
+                border-top: 1px solid rgba(0, 224, 208, 0.45);
+                box-shadow: 0 -8px 40px rgba(0,0,0,0.8), 0 0 30px rgba(0,224,208,0.15);
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 0.35s ease, transform 0.35s ease;
+                overflow: hidden;
+            }
+            #lyricsPanelActive.show { display: flex; opacity: 1; transform: translateY(0); }
+
+            #lyricsHeaderActive {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 20px 12px 20px;
+                border-bottom: 1px solid rgba(0, 224, 208, 0.15);
+                flex-shrink: 0;
+            }
+            #lyricsTitleActive {
+                color: #00e0d0;
+                font-size: 13px;
+                font-weight: bold;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                text-shadow: 0 0 15px rgba(0,224,208,0.6);
+                flex: 1;
+                margin-right: 10px;
+            }
+            #lyricsCloseActive {
+                width: 34px; height: 34px;
+                border-radius: 50%;
+                background: rgba(0,0,0,0.5);
+                border: 1px solid rgba(255,255,255,0.2);
+                color: #fff;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 16px;
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+            #lyricsCloseActive:active { background: rgba(0,224,208,0.35); }
+
+            #lyricsBodyActive {
+                flex: 1;
+                overflow-y: auto;
+                padding: 10px 16px 20px 16px;
+                -webkit-overflow-scrolling: touch;
+            }
+            #lyricsBodyActive::-webkit-scrollbar { display: none; }
+
+            .lyr-video-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px;
+                margin-bottom: 8px;
+                background: rgba(20, 20, 20, 0.75);
+                border: 1px solid rgba(0, 224, 208, 0.15);
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .lyr-video-row:active {
+                background: rgba(0, 224, 208, 0.2);
+                border-color: #00e0d0;
+                transform: scale(0.98);
+            }
+            .lyr-video-row img {
+                width: 80px;
+                height: 60px;
+                border-radius: 6px;
+                object-fit: cover;
+                flex-shrink: 0;
+            }
+            .lyr-video-info { flex: 1; overflow: hidden; }
+            .lyr-video-title {
+                font-size: 12px;
+                color: #fff;
+                font-weight: bold;
+                line-height: 1.3;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            }
+            .lyr-video-channel {
+                font-size: 10px;
+                color: #888;
+                margin-top: 3px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .lyr-play-icon {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                background: #00e0d0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .lyr-play-icon svg { width: 14px; height: 14px; fill: #000; margin-left: 1px; }
+            #lyricsBodyActive .lyr-msg {
+                color: #aaa;
+                font-style: italic;
+                font-size: 14px;
+                text-align: center;
+                padding: 40px 20px;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function injectElements() {
+        if (!document.getElementById('lyricsBtnActive')) {
+            var btn = document.createElement('div');
+            btn.id = 'lyricsBtnActive';
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/></svg>';
+            document.body.appendChild(btn);
+            btn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openLyrics();
+            };
+        }
+        if (!document.getElementById('lyricsPanelActive')) {
+            var panel = document.createElement('div');
+            panel.id = 'lyricsPanelActive';
+            panel.innerHTML = `
+                <div id="lyricsHeaderActive">
+                    <div id="lyricsTitleActive">Lyric Videos</div>
+                    <div id="lyricsCloseActive">✕</div>
+                </div>
+                <div id="lyricsBodyActive">
+                    <div class="lyr-msg">Loading lyric videos...</div>
+                </div>
+            `;
+            document.body.appendChild(panel);
+            document.getElementById('lyricsCloseActive').onclick = function(e) {
+                e.stopPropagation();
+                closeLyrics();
+            };
+        }
+    }
+
+    function openLyrics() {
+        var panel = document.getElementById('lyricsPanelActive');
+        if (!panel) return;
+        panel.classList.add('show');
+        searchLyrics();
+    }
+
+    function closeLyrics() {
+        var panel = document.getElementById('lyricsPanelActive');
+        if (panel) panel.classList.remove('show');
+    }
+
+    function getCurrentSong() {
+        var title = '', artist = '';
+
+        // 1. Try live YouTube player
+        try {
+            if (window.ytPlayer && typeof window.ytPlayer.getVideoData === 'function') {
+                var vd = window.ytPlayer.getVideoData();
+                if (vd && vd.title) {
+                    title = vd.title;
+                    artist = vd.author || '';
+                }
+            }
+        } catch(e) {}
+
+        // 2. Try ytResults
+        if (!title && window.ytResults && window.ytResults[window.currentIndex]) {
+            var t = window.ytResults[window.currentIndex];
+            if (t.snippet) {
+                title = t.snippet.title || '';
+                artist = t.snippet.channelTitle || '';
+            }
+        }
+
+        // 3. Try playQueue
+        if (!title && window.playQueue && window.playQueue[window.currentIndex]) {
+            var t2 = window.playQueue[window.currentIndex];
+            if (t2.snippet) {
+                title = t2.snippet.title || '';
+                artist = t2.snippet.channelTitle || '';
+            }
+        }
+
+        // 4. Try local songs
+        if (!title && window.songs && window.songs[window.currentIndex]) {
+            title = window.songs[window.currentIndex].title || '';
+            artist = window.songs[window.currentIndex].artist_name || '';
+        }
+
+        // 5. Try mini player
+        if (!title) {
+            var mt = document.getElementById('miniTitle');
+            var ma = document.getElementById('miniArtist');
+            if (mt && mt.textContent) title = mt.textContent;
+            if (ma && ma.textContent) artist = ma.textContent;
+        }
+
+        return { title: title, artist: artist };
+    }
+
+    async function searchLyrics() {
+        var body = document.getElementById('lyricsBodyActive');
+        var titleEl = document.getElementById('lyricsTitleActive');
+
+        var song = getCurrentSong();
+        var title = song.title;
+        var artist = song.artist;
+
+        console.log('[Lyrics] Current song:', title, '-', artist);
+
+        if (!title) {
+            body.innerHTML = '<div class="lyr-msg">Play a song first to find lyric videos 🎧</div>';
+            return;
+        }
+
+        // Clean up title
+        var cleanTitle = title.replace(/official|video|lyrics|lyric|audio|music|hd|4k|ft\.|feat\.|\(.*?\)|\[.*?\]/gi, '').trim();
+        var cleanArtist = (artist || '').replace(/vevo|topic|official|- topic/gi, '').trim();
+
+        // If no clean title, use original
+        if (!cleanTitle) cleanTitle = title;
+        if (!cleanArtist) cleanArtist = artist;
+
+        var query = (cleanArtist ? cleanArtist + ' ' : '') + cleanTitle + ' lyrics';
+
+        titleEl.textContent = '🎤 ' + cleanTitle.substring(0, 30);
+        body.innerHTML = '<div class="lyr-msg">🔍 Searching for lyric videos...</div>';
+
+        try {
+            // Use the same pget function the rest of the app uses
+            var pget = window.pget;
+            if (!pget) {
+                body.innerHTML = '<div class="lyr-msg">⚠️ Search not available.</div>';
+                return;
+            }
+
+            var d = await pget('/search?q=' + encodeURIComponent(query) + '&filter=videos');
+            var items = (d.items || []).filter(function(v) { return v.url && v.title; }).slice(0, 20);
+
+            if (items.length === 0) {
+                body.innerHTML = '<div class="lyr-msg">😕 No lyric videos found for this song.</div>';
+                return;
+            }
+
+            body.innerHTML = '';
+            items.forEach(function(v, idx) {
+                var vid = (v.url || '').replace('/watch?v=', '');
+                var row = document.createElement('div');
+                row.className = 'lyr-video-row';
+                row.innerHTML = `
+                    <img src="${v.thumbnail || ''}" onerror="this.style.opacity='0.3'">
+                    <div class="lyr-video-info">
+                        <div class="lyr-video-title">${(v.title || '').replace(/</g, '&lt;')}</div>
+                        <div class="lyr-video-channel">${(v.uploaderName || 'Unknown').replace(/</g, '&lt;')}</div>
+                    </div>
+                    <div class="lyr-play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                `;
+                row.onclick = function() {
+                    closeLyrics();
+                    var newQueue = items.map(function(x) {
+                        return {
+                            id: { videoId: (x.url || '').replace('/watch?v=', '') },
+                            snippet: {
+                                title: x.title,
+                                channelTitle: x.uploaderName || '',
+                                thumbnails: {
+                                    default: { url: x.thumbnail },
+                                    high: { url: x.thumbnail }
+                                }
+                            }
+                        };
+                    });
+                    window.ytResults = newQueue;
+                    window.playQueue = newQueue;
+                    var playIdx = newQueue.findIndex(function(t) { return t.id.videoId === vid; });
+                    if (playIdx < 0) playIdx = 0;
+                    if (typeof window.playYoutube === 'function') window.playYoutube(playIdx);
+                };
+                body.appendChild(row);
+            });
+        } catch(err) {
+            body.innerHTML = '<div class="lyr-msg">⚠️ Could not load lyric videos. Check your internet.</div>';
+        }
+    }
+
+    function init() {
+        injectStyle();
+        injectElements();
+
+        // Show lyrics button only when full player is active
+        setInterval(function() {
+            var btn = document.getElementById('lyricsBtnActive');
+            if (!btn) return;
+            var fp = document.getElementById('fullPlayer');
+            if (fp && fp.classList.contains('active')) btn.classList.add('show');
+            else {
+                btn.classList.remove('show');
+                closeLyrics();
+            }
+        }, 400);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    window.openLyrics = openLyrics;
+    window.closeLyrics = closeLyrics;
+})();
+// END LYRICS FEATURE
