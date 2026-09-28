@@ -1589,7 +1589,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="info-text">
                             <b>Want to download songs?</b>
                             Downloads are only available on our <b style="display:inline;">website</b> for now. Head there, tap a song, and download it directly.<br><br>
-                            🌐 <a href="https://djsky577-maker.github.io/BIMusic/" target="_blank">djsky577-maker.github.io/BIMusic</a>
+                            🌐 <a href="https://djsky577-maker.github.io/BIMusic/" target="_blank">djsky577-maker.github.io/BIMusic</a><div style="font-size:11px;color:#888;margin-top:6px;line-height:1.4;">Copy this link and paste it in your browser.</div>
                         </div>
                     </div>
 
