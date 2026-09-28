@@ -1589,7 +1589,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="info-text">
                             <b>Want to download songs?</b>
                             Downloads are only available on our <b style="display:inline;">website</b> for now. Head there, tap a song, and download it directly.<br><br>
-                            🌐 <a href="javascript:void(0)" onclick="copyInfoLink(event)" style="cursor:pointer;">djsky577-maker.github.io/BIMusic</a><div style="font-size:11px;color:#888;margin-top:6px;line-height:1.4;">Tap the link to copy it, then paste it in your browser.</div>
+                            🌐 <span style="word-break:break-all;">djsky577-maker.github.io/BIMusic</span>
+                            <button onclick="copyInfoLink(event)" id="copyInfoBtn" style="display:block;margin-top:10px;padding:8px 16px;background:rgba(0,224,208,0.2);color:#00e0d0;border:1px solid rgba(0,224,208,0.5);border-radius:20px;font-size:12px;font-weight:bold;cursor:pointer;font-family:inherit;letter-spacing:0.5px;">📋 COPY LINK</button>
+                            <div style="font-size:11px;color:#888;margin-top:6px;line-height:1.4;">Then paste it in your browser.</div>
                         </div>
                     </div>
 
@@ -1668,25 +1670,40 @@ document.addEventListener('DOMContentLoaded', function() {
 // END INFO NOTE
 
 
+
+
+
 // INFO LINK COPY
 (function() {
     window.copyInfoLink = function(e) {
         if (e) e.preventDefault();
         var url = 'https://djsky577-maker.github.io/BIMusic/';
-        // Try modern clipboard API first
+        var btn = document.getElementById('copyInfoBtn');
+
+        function markCopied() {
+            if (!btn) return;
+            var originalText = btn.innerHTML;
+            btn.innerHTML = '✅ COPIED!';
+            btn.style.background = 'rgba(0,224,208,0.5)';
+            btn.style.color = '#000';
+            setTimeout(function() {
+                btn.innerHTML = originalText;
+                btn.style.background = 'rgba(0,224,208,0.2)';
+                btn.style.color = '#00e0d0';
+            }, 2000);
+        }
+
+        // Modern clipboard API
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(url).then(function() {
-                showCopyToast('✅ Link copied! Paste it in your browser.');
-            }, function() {
-                fallbackCopy(url);
+            navigator.clipboard.writeText(url).then(markCopied, function() {
+                fallbackCopy(url, markCopied);
             });
         } else {
-            fallbackCopy(url);
+            fallbackCopy(url, markCopied);
         }
     };
 
-    function fallbackCopy(text) {
-        // Old-school fallback for older Android WebViews
+    function fallbackCopy(text, onSuccess) {
         var ta = document.createElement('textarea');
         ta.value = text;
         ta.style.position = 'fixed';
@@ -1696,28 +1713,11 @@ document.addEventListener('DOMContentLoaded', function() {
         ta.setSelectionRange(0, 99999);
         try {
             document.execCommand('copy');
-            showCopyToast('✅ Link copied! Paste it in your browser.');
+            if (onSuccess) onSuccess();
         } catch(e) {
-            showCopyToast('📋 Copy this: ' + text);
+            alert('Copy this link: ' + text);
         }
         document.body.removeChild(ta);
-    }
-
-    function showCopyToast(msg) {
-        // Remove existing toast
-        var old = document.getElementById('copyInfoToast');
-        if (old) old.parentNode.removeChild(old);
-
-        var toast = document.createElement('div');
-        toast.id = 'copyInfoToast';
-        toast.textContent = msg;
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#00e0d0,#008f85);color:#000;font-weight:bold;font-size:13px;padding:12px 20px;border-radius:25px;z-index:99999999;box-shadow:0 10px 30px rgba(0,224,208,0.6);opacity:0;transition:opacity 0.3s ease;max-width:90vw;text-align:center;';
-        document.body.appendChild(toast);
-        setTimeout(function(){ toast.style.opacity = '1'; }, 20);
-        setTimeout(function(){
-            toast.style.opacity = '0';
-            setTimeout(function(){ if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
-        }, 2500);
     }
 })();
 // END INFO LINK COPY
