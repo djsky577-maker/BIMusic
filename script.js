@@ -1953,3 +1953,152 @@ document.addEventListener('DOMContentLoaded', function() {
     window.renderRecentlyPlayed = renderRecent;
 })();
 // END RECENTLY PLAYED
+
+
+// FOR YOU UPGRADE
+(function() {
+    var FY_POOL = [
+        'Drake', 'Taylor Swift', 'The Weeknd', 'Ed Sheeran',
+        'Burna Boy', 'Wizkid', 'Davido', 'Tems', 'Asake',
+        'Rema', 'Fireboy DML', 'Joeboy', 'SZA', 'Doja Cat',
+        'Post Malone', 'Billie Eilish', 'Ariana Grande',
+        'Bruno Mars', 'Chris Brown', 'Rihanna', 'Beyoncé',
+        'Kendrick Lamar', 'Travis Scott', 'Nicki Minaj',
+        'Ruger', 'BNXN', 'Omah Lay', 'Ayra Starr', 'Tyla',
+        'J. Cole', 'Future', 'Lil Baby', 'Adekunle Gold',
+        'Kizz Daniel', 'Olamide', 'Tiwa Savage', 'Yemi Alade'
+    ];
+
+    var BAD_WORDS = ['nonstop','non stop','non-stop','playlist','mix','megamix','dj mix','mixtape','1 hour','2 hour','3 hour','hour loop','compilation','jukebox','continuous','endless','vol.','full album','all songs','best of playlist','video songs'];
+
+    function isRealSong(title) {
+        if (!title) return false;
+        var t = title.toLowerCase();
+        for (var i = 0; i < BAD_WORDS.length; i++) {
+            if (t.indexOf(BAD_WORDS[i]) >= 0) return false;
+        }
+        if (title.length > 90) return false;
+        if (/\d+\s*(hour|hr)/i.test(t)) return false;
+        if ((title.match(/\|/g) || []).length >= 3) return false;
+        return true;
+    }
+
+    async function loadForYouFresh() {
+        var container = document.getElementById('forYou');
+        if (!container) return;
+
+        // Skeleton loading state
+        container.innerHTML = '<p style="color:#666;font-size:12px;padding:10px 0;">🎧 Loading fresh picks...</p>';
+
+        try {
+            // Pick 6 random artists each time
+            var shuffled = FY_POOL.slice().sort(function() { return Math.random() - 0.5; });
+            var picked = shuffled.slice(0, 6);
+            var allSongs = [];
+
+            // Fetch songs from each artist
+            for (var i = 0; i < picked.length; i++) {
+                try {
+                    var d = await window.pget('/search?q=' + encodeURIComponent(picked[i] + ' official video') + '&filter=videos');
+                    var items = (d.items || []).filter(function(v) { return v.url && v.title && isRealSong(v.title); });
+                    // Take 5 songs per artist
+                    items.slice(0, 5).forEach(function(v) {
+                        allSongs.push({
+                            id: (v.url || '').replace('/watch?v=', ''),
+                            title: v.title,
+                            artist: v.uploaderName || picked[i],
+                            thumbnail: v.thumbnail
+                        });
+                    });
+                } catch(e) {}
+            }
+
+            // Remove duplicates
+            var seen = {};
+            var unique = [];
+            allSongs.forEach(function(s) {
+                if (!seen[s.id]) { seen[s.id] = true; unique.push(s); }
+            });
+
+            if (unique.length === 0) {
+                container.innerHTML = '<p style="color:#666;font-size:12px;padding:10px 0;">No songs right now.</p>';
+                return;
+            }
+
+            // Shuffle and take up to 30
+            unique.sort(function() { return Math.random() - 0.5; });
+            var final = unique.slice(0, 30);
+
+            // Render with the SAME style as Trending
+            container.innerHTML = '';
+            container.style.cssText = 'display:flex;gap:12px;overflow-x:auto;padding:4px 0 12px 0;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;';
+            container.classList.add('foryou-scroll');
+
+            // Add scrollbar hide style once
+            if (!document.getElementById('foryou-scroll-style')) {
+                var s = document.createElement('style');
+                s.id = 'foryou-scroll-style';
+                s.textContent = '.foryou-scroll::-webkit-scrollbar{display:none;} .foryou-card{flex:0 0 auto;width:150px;scroll-snap-align:start;background:rgba(20,20,20,0.7);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(0,224,208,0.2);border-radius:14px;overflow:hidden;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(0,0,0,0.5);position:relative;} .foryou-card:active{transform:scale(0.95);border-color:#00e0d0;box-shadow:0 8px 25px rgba(0,224,208,0.3);} .foryou-thumb-wrap{position:relative;width:100%;height:150px;overflow:hidden;} .foryou-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block;} .foryou-rank{position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#00e0d0,#008f85);color:#000;font-weight:900;font-size:12px;padding:3px 8px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.6);z-index:2;} .foryou-play-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,transparent 50%);display:flex;align-items:flex-end;justify-content:flex-end;padding:8px;} .foryou-play-icon{width:34px;height:34px;border-radius:50%;background:#00e0d0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,224,208,0.6);} .foryou-play-icon svg{width:16px;height:16px;fill:#000;margin-left:2px;} .foryou-info{padding:8px 10px 10px 10px;} .foryou-title{color:#fff;font-size:12px;font-weight:bold;line-height:1.25;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-bottom:4px;} .foryou-artist{color:#888;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}';
+                document.head.appendChild(s);
+            }
+
+            final.forEach(function(s, idx) {
+                var card = document.createElement('div');
+                card.className = 'foryou-card';
+                card.innerHTML = '<div class="foryou-thumb-wrap"><div class="foryou-rank">#' + (idx + 1) + '</div><img src="' + (s.thumbnail || '') + '" onerror="this.style.opacity=\'0.3\'"><div class="foryou-play-overlay"><div class="foryou-play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div></div><div class="foryou-info"><div class="foryou-title">' + (s.title || '').replace(/</g, '&lt;') + '</div><div class="foryou-artist">' + (s.artist || '').replace(/</g, '&lt;') + '</div></div>';
+
+                card.onclick = function() {
+                    var newQueue = final.map(function(x) {
+                        return {
+                            id: { videoId: x.id },
+                            snippet: {
+                                title: x.title,
+                                channelTitle: x.artist,
+                                thumbnails: { default: { url: x.thumbnail }, high: { url: x.thumbnail } }
+                            }
+                        };
+                    });
+                    window.ytResults = newQueue;
+                    window.playQueue = newQueue;
+                    if (typeof window.playYoutube === 'function') window.playYoutube(idx);
+                };
+                container.appendChild(card);
+            });
+
+            console.log('[For You] Loaded ' + final.length + ' fresh songs.');
+        } catch(err) {
+            container.innerHTML = '<p style="color:#ff5555;font-size:12px;padding:10px 0;">Could not load songs.</p>';
+        }
+    }
+
+    // Override the original loadForYou function
+    window.loadForYou = loadForYouFresh;
+    window.refreshForYou = loadForYouFresh;
+
+    // Trigger on load, after the app is ready
+    function init() {
+        setTimeout(function() {
+            var forYou = document.getElementById('forYou');
+            if (forYou) {
+                window.loadForYou();
+            }
+        }, 3000);
+
+        // Also refresh when the app becomes visible again (user returns to app)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Refresh For You every time the app comes back to focus
+                setTimeout(function() {
+                    if (typeof window.refreshForYou === 'function') window.refreshForYou();
+                }, 1000);
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+// END FOR YOU UPGRADE
