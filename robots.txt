@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://djsky577-maker.github.io/BIMusic/sitemap.xml
