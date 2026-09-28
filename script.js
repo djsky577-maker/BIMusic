@@ -1392,3 +1392,277 @@ document.addEventListener('DOMContentLoaded', function() {
     window.closeLyrics = closeLyrics;
 })();
 // END LYRICS FEATURE
+
+
+// INFO NOTE
+(function() {
+    function injectStyle() {
+        if (document.getElementById('infoNoteStyle')) return;
+        var style = document.createElement('style');
+        style.id = 'infoNoteStyle';
+        style.textContent = `
+            /* Info button — bottom-left, above the scroll button */
+            #infoNoteBtn {
+                display: none;
+                position: fixed;
+                bottom: 155px;
+                left: 15px;
+                z-index: 999997;
+                background: rgba(0, 224, 208, 0.15);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border: 1px solid rgba(0, 224, 208, 0.5);
+                border-radius: 50%;
+                width: 52px;
+                height: 52px;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 4px 18px rgba(0,0,0,0.7), 0 0 20px rgba(0,224,208,0.3);
+                transition: all 0.2s ease;
+                color: #00e0d0;
+                font-size: 26px;
+                font-weight: 900;
+                font-family: Georgia, serif;
+                font-style: italic;
+                line-height: 1;
+            }
+            #infoNoteBtn:active { transform: scale(0.9); background: rgba(0,224,208,0.4); }
+            #infoNoteBtn.show { display: flex; }
+
+            /* The panel */
+            #infoNoteOverlay {
+                display: none;
+                position: fixed;
+                top: 0; left: 0;
+                width: 100vw; height: 100vh;
+                z-index: 99999999;
+                background: rgba(0, 0, 0, 0.75);
+                backdrop-filter: blur(25px);
+                -webkit-backdrop-filter: blur(25px);
+                align-items: center;
+                justify-content: center;
+                padding: 16px;
+                box-sizing: border-box;
+                opacity: 0;
+                transition: opacity 0.35s ease;
+                overflow-y: auto;
+            }
+            #infoNoteOverlay.show { display: flex; opacity: 1; }
+
+            #infoNotePanel {
+                width: 100%;
+                max-width: 400px;
+                background: linear-gradient(135deg, rgba(0, 224, 208, 0.15), rgba(0, 143, 133, 0.06));
+                backdrop-filter: blur(40px);
+                -webkit-backdrop-filter: blur(40px);
+                border: 1px solid rgba(0, 224, 208, 0.4);
+                border-radius: 26px;
+                padding: 26px 22px 22px;
+                box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 50px rgba(0, 224, 208, 0.15);
+                transform: translateY(30px) scale(0.95);
+                opacity: 0;
+                animation: infoPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s forwards;
+                max-height: 92vh;
+                overflow-y: auto;
+                box-sizing: border-box;
+            }
+            @keyframes infoPop {
+                to { transform: translateY(0) scale(1); opacity: 1; }
+            }
+
+            .info-logo {
+                text-align: center;
+                font-size: 30px;
+                font-weight: 900;
+                color: #00e0d0;
+                text-shadow: 0 0 30px rgba(0, 224, 208, 0.8);
+                letter-spacing: 1px;
+                margin-bottom: 4px;
+            }
+            .info-tagline {
+                text-align: center;
+                font-size: 11px;
+                color: #00e0d0;
+                opacity: 0.85;
+                letter-spacing: 2.5px;
+                text-transform: uppercase;
+                margin-bottom: 22px;
+                font-weight: bold;
+            }
+
+            .info-block {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                background: rgba(0, 0, 0, 0.35);
+                border: 1px solid rgba(0, 224, 208, 0.18);
+                border-radius: 14px;
+                padding: 13px 14px;
+                margin-bottom: 10px;
+            }
+            .info-icon {
+                font-size: 22px;
+                flex-shrink: 0;
+                line-height: 1.2;
+                filter: drop-shadow(0 0 8px rgba(0, 224, 208, 0.5));
+            }
+            .info-text {
+                flex: 1;
+                font-size: 13px;
+                line-height: 1.55;
+                color: #d0d0d0;
+            }
+            .info-text b {
+                color: #00e0d0;
+                display: block;
+                font-size: 13.5px;
+                margin-bottom: 4px;
+                letter-spacing: 0.3px;
+            }
+            .info-text a {
+                color: #00e0d0;
+                text-decoration: underline;
+                word-break: break-all;
+                font-weight: bold;
+            }
+
+            .info-footer {
+                text-align: center;
+                font-size: 12px;
+                color: #aaa;
+                margin: 16px 0 4px 0;
+                line-height: 1.6;
+            }
+            .info-footer .heart { color: #00e0d0; }
+
+            #infoNoteCloseBtn {
+                width: 100%;
+                margin-top: 16px;
+                padding: 16px;
+                font-size: 15px;
+                font-weight: 900;
+                color: #000;
+                background: linear-gradient(135deg, #00e0d0, #008f85);
+                border: none;
+                border-radius: 14px;
+                cursor: pointer;
+                letter-spacing: 1.5px;
+                box-shadow: 0 10px 30px rgba(0, 224, 208, 0.5);
+                animation: infoPulse 1.6s ease-in-out infinite;
+                text-transform: uppercase;
+                font-family: inherit;
+            }
+            #infoNoteCloseBtn:active { transform: scale(0.96); }
+            @keyframes infoPulse {
+                0%   { transform: scale(1);    box-shadow: 0 10px 30px rgba(0, 224, 208, 0.5); }
+                50%  { transform: scale(1.04); box-shadow: 0 14px 40px rgba(0, 224, 208, 0.9); }
+                100% { transform: scale(1);    box-shadow: 0 10px 30px rgba(0, 224, 208, 0.5); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function injectElements() {
+        if (!document.getElementById('infoNoteBtn')) {
+            var btn = document.createElement('div');
+            btn.id = 'infoNoteBtn';
+            btn.innerHTML = 'i';
+            btn.title = 'Info';
+            document.body.appendChild(btn);
+            btn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openInfoNote();
+            };
+        }
+        if (!document.getElementById('infoNoteOverlay')) {
+            var overlay = document.createElement('div');
+            overlay.id = 'infoNoteOverlay';
+            overlay.innerHTML = `
+                <div id="infoNotePanel">
+                    <div class="info-logo">B.I MUSIC</div>
+                    <div class="info-tagline">Cooking something new every day</div>
+
+                    <div class="info-block">
+                        <div class="info-icon">⬇️</div>
+                        <div class="info-text">
+                            <b>Want to download songs?</b>
+                            Downloads are only available on our <b style="display:inline;">website</b> for now. Head there, tap a song, and download it directly.<br><br>
+                            🌐 <a href="https://djsky577-maker.github.io/BIMusic/" target="_blank">djsky577-maker.github.io/BIMusic</a>
+                        </div>
+                    </div>
+
+                    <div class="info-block">
+                        <div class="info-icon">⚠️</div>
+                        <div class="info-text">
+                            <b>Inside the app, downloads aren't ready yet.</b>
+                            But don't worry — <b style="display:inline;">streaming works perfectly</b>. Play any song, anytime, unlimited.
+                        </div>
+                    </div>
+
+                    <div class="info-block">
+                        <div class="info-icon">🎉</div>
+                        <div class="info-text">
+                            <b>Stay with us.</b>
+                            We're adding new features all the time. Thank you for being part of the B.I Music family. <span class="heart">💚</span>
+                        </div>
+                    </div>
+
+                    <button id="infoNoteCloseBtn">🔥 Keep Streaming</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            document.getElementById('infoNoteCloseBtn').onclick = closeInfoNote;
+            overlay.onclick = function(e) {
+                if (e.target === overlay) closeInfoNote();
+            };
+        }
+    }
+
+    function openInfoNote() {
+        var overlay = document.getElementById('infoNoteOverlay');
+        if (overlay) overlay.classList.add('show');
+    }
+    function closeInfoNote() {
+        var overlay = document.getElementById('infoNoteOverlay');
+        if (overlay) overlay.classList.remove('show');
+    }
+
+    function init() {
+        injectStyle();
+        injectElements();
+
+        // Show the info button only when logged in (main content visible)
+        setInterval(function() {
+            var btn = document.getElementById('infoNoteBtn');
+            if (!btn) return;
+            var authView = document.getElementById('view-auth');
+            var isLoggedIn = !authView || authView.style.display === 'none' || !authView.classList.contains('active');
+            var homeTab = document.getElementById('tab-home');
+            var isOnApp = homeTab && homeTab.offsetParent !== null;
+            // Only show on home tab (not in full player or artist modal)
+            var fullPlayer = document.getElementById('fullPlayer');
+            var artistModal = document.getElementById('artistModal');
+            var inFullPlayer = fullPlayer && fullPlayer.classList.contains('active');
+            var inArtistModal = artistModal && artistModal.classList.contains('active');
+
+            if (isOnApp && !inFullPlayer && !inArtistModal) {
+                btn.classList.add('show');
+            } else {
+                btn.classList.remove('show');
+            }
+        }, 500);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    window.openInfoNote = openInfoNote;
+    window.closeInfoNote = closeInfoNote;
+})();
+// END INFO NOTE
