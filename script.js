@@ -1721,3 +1721,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 })();
 // END INFO LINK COPY
+
+// PROFILE UPDATE BUTTON
+(function() {
+    window.triggerProfileUpdate = function() {
+        var btn = document.getElementById('profileUpdateBtn');
+        if (btn) {
+            btn.innerHTML = '⏳ Checking for updates...';
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+        }
+        // Force hard reload with cache-busting timestamp
+        setTimeout(function() {
+            window.location.href = window.location.pathname + '?update=' + Date.now();
+        }, 800);
+    };
+})();
+// END PROFILE UPDATE BUTTON
