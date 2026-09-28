@@ -1792,3 +1792,164 @@ document.addEventListener('DOMContentLoaded', function() {
     window.closeLyrics = closeLyrics;
 })();
 // END LYRICS FEATURE
+
+
+// RECENTLY PLAYED
+(function() {
+    var RECENT_KEY = 'bi_recently_played';
+    var MAX_RECENT = 8;
+
+    // ========== STORAGE ==========
+    function getRecent() {
+        try {
+            var raw = localStorage.getItem(RECENT_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch(e) { return []; }
+    }
+
+    function saveRecent(list) {
+        try {
+            localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, MAX_RECENT)));
+        } catch(e) {}
+    }
+
+    // ========== ADD A SONG TO RECENT ==========
+    window.addToRecentlyPlayed = function(song) {
+        if (!song || !song.id) return;
+
+        var list = getRecent();
+
+        // Remove duplicate (if already exists), then add to top
+        list = list.filter(function(s) { return s.id !== song.id; });
+        list.unshift({
+            id: song.id,
+            title: song.title || 'Unknown',
+            artist: song.artist || 'Unknown',
+            thumbnail: song.thumbnail || '',
+            source: song.source || 'youtube',
+            playedAt: Date.now()
+        });
+
+        // Limit to 8
+        list = list.slice(0, MAX_RECENT);
+        saveRecent(list);
+
+        // Instantly re-render
+        renderRecent();
+    };
+
+    // ========== RENDER THE RECENT SECTION ==========
+    function renderRecent() {
+        var container = document.getElementById('recentlyPlayed');
+        if (!container) return;
+
+        var list = getRecent();
+
+        if (list.length === 0) {
+            container.innerHTML = '<p style="color:#666;font-size:12px;padding:10px 0;">🎧 Play a song to see it here.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        list.forEach(function(s) {
+            var card = document.createElement('div');
+            card.className = 'card';
+            card.style.cssText = 'flex:0 0 auto;width:130px;cursor:pointer;';
+            card.innerHTML = '<div class="card-img"><img src="' + (s.thumbnail || 'https://via.placeholder.com/150') + '" onerror="this.src=\'https://via.placeholder.com/150\'"></div><div class="card-title">' + (s.title || 'Unknown').replace(/</g, '&lt;') + '</div><div class="card-sub">' + (s.artist || 'Unknown').replace(/</g, '&lt;') + '</div>';
+
+            card.onclick = function() {
+                // Play this song
+                var mock = {
+                    id: { videoId: s.id },
+                    snippet: {
+                        title: s.title,
+                        channelTitle: s.artist,
+                        thumbnails: {
+                            default: { url: s.thumbnail },
+                            high: { url: s.thumbnail }
+                        }
+                    }
+                };
+                window.ytResults = [mock];
+                window.playQueue = window.ytResults;
+                if (typeof window.playYoutube === 'function') window.playYoutube(0);
+            };
+            container.appendChild(card);
+        });
+    }
+
+    // ========== HOOK INTO PLAY FUNCTIONS ==========
+    function hookPlayYoutube() {
+        var original = window.playYoutube;
+        if (!original || original._hooked) return;
+        window.playYoutube = function(i) {
+            original(i);
+            try {
+                var t = window.ytResults && window.ytResults[i];
+                if (t && t.id && t.id.videoId) {
+                    window.addToRecentlyPlayed({
+                        id: t.id.videoId,
+                        title: t.snippet.title || '',
+                        artist: t.snippet.channelTitle || '',
+                        thumbnail: (t.snippet.thumbnails && t.snippet.thumbnails.high && t.snippet.thumbnails.high.url) || '',
+                        source: 'youtube'
+                    });
+                }
+            } catch(e) {}
+        };
+        window.playYoutube._hooked = true;
+    }
+
+    function hookPlayDbSong() {
+        var original = window.playDbSong;
+        if (!original || original._hooked) return;
+        window.playDbSong = function(i) {
+            original(i);
+            try {
+                var s = window.songs && window.songs[i];
+                if (s && s.id) {
+                    window.addToRecentlyPlayed({
+                        id: s.id,
+                        title: s.title || '',
+                        artist: s.artist_name || '',
+                        thumbnail: s.cover_art_url || '',
+                        source: 'db'
+                    });
+                }
+            } catch(e) {}
+        };
+        window.playDbSong._hooked = true;
+    }
+
+    // ========== INIT ==========
+    function init() {
+        // Render whatever is already saved
+        renderRecent();
+
+        // Hook into play functions (with retry, in case they load later)
+        var tries = 0;
+        var hookInterval = setInterval(function() {
+            hookPlayYoutube();
+            hookPlayDbSong();
+            tries++;
+            if (tries > 20) clearInterval(hookInterval); // stop after 10 seconds
+        }, 500);
+
+        // Also re-render on visibility change (when user comes back to the app)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) renderRecent();
+        });
+
+        console.log('[Recently Played] Ready.');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() { setTimeout(init, 1500); });
+    } else {
+        setTimeout(init, 1500);
+    }
+
+    // Also expose renderRecent for external calls
+    window.renderRecentlyPlayed = renderRecent;
+})();
+// END RECENTLY PLAYED
