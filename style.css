@@ -505,50 +505,99 @@ body { background: #050505 !important; }
 }
 
 
+
+
+
+    100% { left: 100%; }
+}
+
+}
+
+
+
+/* ============= PROFILE UPDATE BUTTON ============= */
 #profileUpdateBtn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 82%;
-    max-width: 340px;
-    margin: 14px auto 10px auto;
-    padding: 14px 20px;
-    background: linear-gradient(135deg, rgba(0, 224, 208, 0.22), rgba(0, 143, 133, 0.12));
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1.5px solid rgba(0, 224, 208, 0.55);
-    border-radius: 14px;
-    color: #00e0d0;
-    font-size: 14px;
-    font-weight: 800;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    cursor: pointer;
-    font-family: inherit;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(0, 224, 208, 0.08), 0 0 25px rgba(0, 224, 208, 0.15);
-    transition: all 0.25s ease;
-    animation: updatePulseGlow 2.4s ease-in-out infinite;
-    position: relative;
-    overflow: hidden;
+    width: 92% !important;
+    max-width: 380px !important;
+    margin: 20px auto 16px auto !important;
+    padding: 22px 24px !important;
+    background: linear-gradient(135deg, #00e0d0 0%, #00b3a6 50%, #00e0d0 100%) !important;
+    background-size: 200% 200% !important;
+    border: none !important;
+    border-radius: 18px !important;
+    color: #000 !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    box-shadow: 0 12px 40px rgba(0, 224, 208, 0.55), 0 4px 15px rgba(0, 0, 0, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.25s ease !important;
+    animation: updateBigGlow 2s ease-in-out infinite, updateGradientMove 4s ease infinite !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
+
+/* Shine sweep */
 #profileUpdateBtn::before {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 224, 208, 0.3), transparent);
-    animation: updateShine 3s ease-in-out infinite;
+    content: '' !important;
+    position: absolute !important;
+    top: 0; left: -100% !important;
+    width: 60% !important; height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent) !important;
+    transform: skewX(-20deg) !important;
+    animation: updateShineSweep 3s ease-in-out infinite !important;
 }
-@keyframes updateShine {
-    0%   { left: -100%; }
-    60%  { left: 100%; }
-    100% { left: 100%; }
+
+/* Icon and text spacing */
+#profileUpdateBtn > div {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    position: relative !important;
+    z-index: 2 !important;
 }
-@keyframes updatePulseGlow {
-    0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 0 15px rgba(0,224,208,0.08), 0 0 25px rgba(0,224,208,0.15); }
-    50%      { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,224,208,0.2),  0 0 35px rgba(0,224,208,0.45); }
+
+#profileUpdateBtn svg {
+    width: 26px !important;
+    height: 26px !important;
+    fill: #000 !important;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)) !important;
+    animation: updateRotate 3s linear infinite !important;
 }
+
+#profileUpdateBtn span {
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    color: #000 !important;
+    letter-spacing: 1.5px !important;
+}
+
 #profileUpdateBtn:active {
-    transform: scale(0.96);
-    background: linear-gradient(135deg, rgba(0, 224, 208, 0.4), rgba(0, 143, 133, 0.2));
+    transform: scale(0.96) !important;
+    box-shadow: 0 6px 20px rgba(0, 224, 208, 0.7), inset 0 2px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+@keyframes updateBigGlow {
+    0%, 100% { box-shadow: 0 12px 40px rgba(0, 224, 208, 0.55), 0 4px 15px rgba(0, 0, 0, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.3); }
+    50%      { box-shadow: 0 12px 55px rgba(0, 224, 208, 0.9), 0 4px 20px rgba(0, 0, 0, 0.7), inset 0 2px 0 rgba(255, 255, 255, 0.4); }
+}
+@keyframes updateGradientMove {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes updateShineSweep {
+    0%   { left: -100%; }
+    50%  { left: 150%; }
+    100% { left: 150%; }
+}
+@keyframes updateRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
