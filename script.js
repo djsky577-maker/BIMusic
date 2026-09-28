@@ -1405,23 +1405,23 @@ document.addEventListener('DOMContentLoaded', function() {
             #infoNoteBtn {
                 display: none;
                 position: fixed;
-                bottom: 155px;
-                left: 15px;
+                top: 15px;
+                right: 15px;
                 z-index: 999997;
                 background: rgba(0, 224, 208, 0.15);
                 backdrop-filter: blur(15px);
                 -webkit-backdrop-filter: blur(15px);
                 border: 1px solid rgba(0, 224, 208, 0.5);
                 border-radius: 50%;
-                width: 52px;
-                height: 52px;
+                width: 42px;
+                height: 42px;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
                 box-shadow: 0 4px 18px rgba(0,0,0,0.7), 0 0 20px rgba(0,224,208,0.3);
                 transition: all 0.2s ease;
                 color: #00e0d0;
-                font-size: 26px;
+                font-size: 22px;
                 font-weight: 900;
                 font-family: Georgia, serif;
                 font-style: italic;
